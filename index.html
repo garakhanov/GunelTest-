@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNEC İmtahan Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2d3748;
+    --accent: #f6ad55;
+    --accent2: #ed8936;
+    --text: #e2e8f0;
+    --muted: #718096;
+    --success: #68d391;
+    --error: #fc8181;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); letter-spacing: 1px; }
+  .logo span { color: var(--text); font-weight: 300; font-size: 1rem; font-family: 'DM Sans', sans-serif; margin-left: 8px; }
+
+  /* ── HOME ── */
+  #home .hero {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+  }
+  #home .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  #home .hero p { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin-bottom: 48px; }
+  .subject-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 36px;
+    max-width: 460px; width: 100%;
+    cursor: pointer;
+    transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .subject-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent);
+  }
+  .subject-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .subject-card h2 { font-size: 1.1rem; margin-bottom: 6px; }
+  .subject-card p { color: var(--muted); font-size: .9rem; }
+  .subject-card .badge {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--accent); color: #000;
+    font-size: .72rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  /* ── SETUP ── */
+  #setup .setup-wrap {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 60px 24px;
+  }
+  #setup h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  #setup .sub { color: var(--muted); margin-bottom: 40px; }
+  .option-cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; max-width: 700px; width: 100%; margin-bottom: 32px;
+  }
+  @media(max-width:600px){ .option-cards { grid-template-columns: 1fr; } }
+  .opt-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    text-align: center;
+  }
+  .opt-card:hover { border-color: var(--accent); }
+  .opt-card.selected { border-color: var(--accent); background: var(--surface2); }
+  .opt-card .icon { font-size: 2rem; margin-bottom: 12px; }
+  .opt-card h3 { font-size: 1rem; margin-bottom: 6px; }
+  .opt-card p { color: var(--muted); font-size: .85rem; }
+
+  .setup-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px; max-width: 460px; width: 100%;
+    display: none;
+  }
+  .setup-form.show { display: block; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: .95rem;
+    outline: none; transition: border-color .2s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600; font-size: .95rem;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+  .btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+
+  /* ── EXAM ── */
+  #exam .exam-top {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .progress-bar-wrap { flex: 1; min-width: 160px; }
+  .progress-bar-bg {
+    height: 6px; border-radius: 3px;
+    background: var(--border); overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 3px; transition: width .4s ease;
+  }
+  .progress-label { font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  .timer-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 16px;
+    font-variant-numeric: tabular-nums;
+    font-size: .95rem; font-weight: 600;
+  }
+  .timer-badge.warn { border-color: var(--error); color: var(--error); }
+
+  #exam .exam-body {
+    flex: 1; display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 24px;
+  }
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 760px; width: 100%;
+    padding: 36px 40px;
+    animation: fadeIn .3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @media(max-width:600px){ .question-card { padding: 24px 20px; } }
+  .q-num { font-size: .8rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .q-text { font-size: 1.05rem; line-height: 1.7; margin-bottom: 28px; font-weight: 500; }
+  .options { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .option-item {
+    border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    cursor: pointer; display: flex; align-items: flex-start; gap: 12px;
+    transition: border-color .15s, background .15s;
+    font-size: .95rem;
+  }
+  .option-item:hover:not(.locked) { border-color: var(--accent); background: var(--surface2); }
+  .option-item.selected { border-color: var(--accent); background: var(--surface2); }
+  .option-item.correct { border-color: var(--success); background: rgba(104,211,145,.08); }
+  .option-item.wrong { border-color: var(--error); background: rgba(252,129,129,.08); }
+  .option-item.locked { cursor: default; }
+  .opt-letter {
+    min-width: 26px; height: 26px;
+    border-radius: 50%; border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .option-item.selected .opt-letter { background: var(--accent); border-color: var(--accent); color: #000; }
+  .option-item.correct .opt-letter { background: var(--success); border-color: var(--success); color: #000; }
+  .option-item.wrong .opt-letter { background: var(--error); border-color: var(--error); color: #000; }
+
+  .q-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 28px;
+  }
+  .q-counter { color: var(--muted); font-size: .88rem; }
+
+  /* ── RESULT ── */
+  #result .result-wrap {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 24px; text-align: center;
+  }
+  .score-ring {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 6px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 28px; position: relative;
+  }
+  .score-ring .score-pct { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--accent); }
+  .score-ring .score-sub { font-size: .78rem; color: var(--muted); }
+  #result h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 10px; }
+  #result p { color: var(--muted); margin-bottom: 32px; }
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; max-width: 480px; width: 100%; margin-bottom: 36px;
+  }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 12px; text-align: center;
+  }
+  .stat-box .num { font-size: 1.6rem; font-weight: 700; }
+  .stat-box .lbl { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+  .stat-box.g .num { color: var(--success); }
+  .stat-box.r .num { color: var(--error); }
+  .stat-box.y .num { color: var(--accent); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ HOME ══════════ -->
+<div id="home" class="screen active">
+  <header>
+    <div class="logo">UNEC <span>İmtahan Sistemi</span></div>
+  </header>
+  <div class="hero">
+    <h1>Sınaq İmtahanı</h1>
+    <p>Fənni seçin, sınaq rejimini müəyyən edin və imtahana başlayın.</p>
+    <div class="subject-card" onclick="goSetup()">
+      <div class="badge">669 sual</div>
+      <h2>00149 — AR Konstitusiyası və Hüququn Əsasları</h2>
+      <p>Konstitusiya hüququ, mülki hüquq, cinayət hüququ, beynəlxalq hüquq və s.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SETUP ══════════ -->
+<div id="setup" class="screen">
+  <header>
+    <div class="logo">UNEC <span>İmtahan Sistemi</span></div>
+    <button class="btn btn-ghost" onclick="goHome()">← Geri</button>
+  </header>
+  <div class="setup-wrap">
+    <h2>Sınaq Yarat</h2>
+    <p class="sub">Rejim seçin və parametrləri tənzimləyin</p>
+    <div class="option-cards">
+      <div class="opt-card" id="optA" onclick="selectMode('random')">
+        <div class="icon">🎲</div>
+        <h3>Təsadüfi Suallar</h3>
+        <p>PDF-dən təsadüfi suallar seçilir</p>
+      </div>
+      <div class="opt-card" id="optB" onclick="selectMode('range')">
+        <div class="icon">📋</div>
+        <h3>Sual Aralığı</h3>
+        <p>Hansı sualların daxil olacağını özünüz seçin</p>
+      </div>
+    </div>
+
+    <!-- Random form -->
+    <div class="setup-form" id="formRandom">
+      <div class="form-group">
+        <label>Sual sayı (maks. 669)</label>
+        <input type="number" id="rCount" min="5" max="669" value="20" placeholder="20">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startRandom()">İmtahana Başla →</button>
+      </div>
+    </div>
+
+    <!-- Range form -->
+    <div class="setup-form" id="formRange">
+      <div class="form-group">
+        <label>Sual aralığı seçin (çoxlu seçim mümkündür)</label>
+        <div id="rangeList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0;"></div>
+      </div>
+      <div class="form-group" style="margin-top:4px;">
+        <label>Sual sayı (seçilmiş aralıqdan)</label>
+        <input type="number" id="rRangeCount" min="5" value="20" placeholder="20">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startRange()">İmtahana Başla →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EXAM ══════════ -->
+<div id="exam" class="screen">
+  <header>
+    <div class="logo">UNEC <span>İmtahan</span></div>
+    <button class="btn btn-ghost" onclick="if(confirm('İmtahanı bitirmək istəyirsiniz?')) showResult()">Bitir</button>
+  </header>
+  <div class="exam-top">
+    <div class="progress-bar-wrap">
+      <div class="progress-label" id="progLabel">Sual 1 / 20</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progBar" style="width:0%"></div></div>
+    </div>
+    <div class="timer-badge" id="timerBadge">⏱ 00:00</div>
+  </div>
+  <div class="exam-body">
+    <div class="question-card" id="questionCard">
+      <!-- dynamic -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RESULT ══════════ -->
+<div id="result" class="screen">
+  <header>
+    <div class="logo">UNEC <span>Nəticə</span></div>
+  </header>
+  <div class="result-wrap">
+    <div class="score-ring" id="scoreRing">
+      <div class="score-pct" id="scorePct">0%</div>
+      <div class="score-sub">xal</div>
+    </div>
+    <h2 id="resultTitle">Nəticə</h2>
+    <p id="resultMsg"></p>
+    <div class="stat-grid">
+      <div class="stat-box g"><div class="num" id="statCorrect">0</div><div class="lbl">Düzgün</div></div>
+      <div class="stat-box r"><div class="num" id="statWrong">0</div><div class="lbl">Səhv</div></div>
+      <div class="stat-box y"><div class="num" id="statTotal">0</div><div class="lbl">Ümumi</div></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn btn-primary" onclick="goSetup()">Yeni Sınaq</button>
+      <button class="btn btn-ghost" onclick="goHome()">Ana Səhifə</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// QUESTIONS DATA
+// ════════════════════════════════
+const ALL_QUESTIONS = [
+  // ── 2-13 ──
+  {n:2,q:"Avropa İttifaqının Fundamental Hüquqlar Agentliyinin (FRA) əsas funksiyası nədir?",o:["Avropa İttifaqı ölkələrində məhkəmə qərarlarının icrasına nəzarət edilməsi","Fundamental hüquqlar sahəsində vəziyyətlə bağlı məlumatların toplanması və üzv dövlətlərə məsləhət verilməsi","İnsan hüquqları pozuntularına görə sanksiyaların tətbiq edilməsi","Üzv ölkələrdə qanunvericilik hazırlanmasının birbaşa idarə olunması","Avropa Parlamenti üçün məcburi hüquqi normativ aktların qəbul edilməsi"],a:1},
+  {n:3,q:"Demokratik Təsisatlar və İnsan Hüquqları üzrə Büro hansı şəhərdə yerləşir?",o:["Cenevrə","Varşava","Vyana","Brüssel","Berlin"],a:1},
+  {n:4,q:"Uşaq hüquqları anlayışının mahiyyəti nəyi ifadə edir?",o:["Uşaqların yalnız fiziki təhlükəsizliklə bağlı hüquqlarını","Yalnız inkişaf etmiş ölkələrdə uşaqlara verilən sosial təminat paketini","Dünyadakı bütün uşaqların doğulduqları gündən sahib olduqları təhsil, sağlamlıq, sığınacaq və istismardan qorunma kimi hüquqların universal şəkildə təsbitini","Uşaqların yalnız məktəb təhsili almaq hüququnu","Ailə daxilində uşaqların davranış qaydalarını əks etdirən məişət normalarını"],a:2},
+  {n:5,q:"ATƏT-in insan hüquqları sahəsində fəaliyyəti hansı qurum vasitəsilə həyata keçirilir?",o:["BMT İnsan Hüquqları Şurası","Demokratik Təsisatlar və İnsan Hüquqları üzrə Büro (ODIHR)","Avropa Şurası Nazirlər Komitəsi","UNESCO-nun İnsan İnkişafı Mərkəzi","ATƏT-in Parlament Assambleyası"],a:1},
+  {n:6,q:"Mülki hüquqda müddət anlayışı nədir?",o:["Mülki hüquq və vəzifələrin məhkəmədə müdafiə edilməsi üçün vaxtdır","Ümumi hüquqların mövcud olduğu vaxtdır","Başqa şəxsdən hər hansı hərəkəti yerinə yetirməyi tələb etmək üçün vaxtdır","Mülki hüquq və vəzifələrin qüvvədə olduğu vaxtdır","Mülki hüquq və vəzifələrin əmələ gəlməsi, dəyişdirilməsi və xitam edilməsi ilə bağlı vaxtdır"],a:4},
+  {n:7,q:"Cinayət mühakimə icraatını hansı məhkəmələr həyata keçirir?",o:["Ağır cinayətlərə dair işlər üzrə Azərbaycan Respublikası məhkəməsi","Bütün variantlar düzdür","Azərbaycan Respublikası Ali Məhkəməsi","Azərbaycan Respublikası Apellyasiya Məhkəməsi","Rayon (şəhər) məhkəmələri"],a:1},
+  {n:8,q:"Naxçıvan Muxtar Respublikasının statusu hansı qanunverici aktla müəyyən olunur?",o:["Nazirlər Kabinetinin qərarları ilə","Respublikanın nizamnaməsi ilə","Ali Məclis qanunları ilə","Naxçıvan Muxtar Respublikası Ali Məclisinin qanunları ilə","Azərbaycan Respublikası Konstitusiyası ilə"],a:4},
+  {n:9,q:"Konstitusiya anlayışı latın dilindən olan \"constitusio\" sözündən olub hərfi mənası necədir?",o:["Qayda","İdarəçilik","Razılıq","Nəzəriyyə","Quruluş, təsisat"],a:4},
+  {n:10,q:"Fikir və söz azadlığı hüququ vətəndaşların hansı hüquq və azadlıqlarının kateqoriyasına aiddir?",o:["Mədəni","İqtisadi","Şəxsi","Sosial","Siyasi"],a:2},
+  {n:11,q:"Cəmiyyət və dövlətin siyasi həyatında iştirak hüququ vətəndaşların hansı hüquq və azadlıqlarının kateqoriyasına aiddir?",o:["Sosial","İqtisadi","Siyasi","Şəxsi","İqtisadi"],a:2},
+  {n:12,q:"Azad sahibkarlıq hüququ vətəndaşların hansı hüquq və azadlıqlarının kateqoriyasına aiddir?",o:["Sosial-iqtisadi","Mülki","Şəxsi","Siyasi","Mədəni"],a:0},
+  {n:13,q:"İcraedici orqanın qərarları necə adlanır?",o:["Məhkəmə qərarları","Qanunqüvvəli aktlar","Məcəllə","Konstitusiya qanunları","Konstitusiya"],a:1},
+  // ── 22-32 ──
+  {n:22,q:"Müvəkkilə şikayətlər necə təqdim oluna bilər?",o:["Yalnız vəkil vasitəsilə","Yalnız bələdiyyələrdə","Yalnız məktəblərdə","Poçt, elektron poçt, onlayn müraciət, qəbul otaqları, qaynar xətlər, şəxsi təqdimat","Yalnız məhkəmə yolu ilə"],a:3},
+  {n:23,q:"Azərbaycanda qadınlara seçki hüququ nə vaxt verilib?",o:["1920-ci ildə","1945-ci ildə","1991-ci ildə","1918-ci ildə","2001-ci ildə"],a:3},
+  {n:24,q:"Ombudsman tərəfindən baxılan şikayətlər hansı prinsiplər əsasında araşdırılır?",o:["Əmr, icra, nəzarət, məcburiyyət, təqib","Qisas, təzyiq, hökm, təqib, itaət","Aşkarlıq, şəffaflıq, qanunçuluq, ədalət, qərəzsizlik","Seçim, icra, mükafat, sanksiya, sükut","Hədə, güc, qorxu, təqib, rüşvət"],a:2},
+  {n:25,q:"Xarici hüquqi şəxslərin Azərbaycan Respublikasında maliyyə hüquq münasibətlərində iştirak prinsipi nə adlanır?",o:["Lisenziya prinsipi","Tərəfdaşlıq prinsipi","Rezidentlik prinsipi","Vergidən azadolma prinsipi","Əməkdaşlıq prinsipi"],a:2},
+  {n:26,q:"Maliyyə hüquq münasibətlərində iştirak edən fiziki şəxslər hansı şərtlərə cavab verməlidirlər?",o:["Hüquq təhsili olmalıdır","Şirkət sahibi olmalıdır","Rezident olmalı və respublika ərazisində gəlir əldə etməlidirlər","Dövlət qulluqçusu olmalıdır","Xaricdə yaşamalıdır"],a:2},
+  {n:27,q:"\"Maliyyə-sənaye qrupları haqqında\" qanuna əsasən yaradılan birliklərin əsas məqsədi nədir?",o:["İstehsalın rəqabət qabiliyyətini artırmaq","İcbari tibbi sığorta həyata keçirmək","İctimai nəzarəti həyata keçirmək","Hüquq müdafiəsi ilə məşğul olmaq","Seçkilərdə iştirak etmək"],a:0},
+  {n:28,q:"Maliyyə hüquq münasibətlərində kollektiv subyekt hesab olunan hansıdır?",o:["Səhmdar cəmiyyət","İctimai nəzarətçi","Fərdi müəllim","Mülki vətəndaş","Hüquqşünas"],a:0},
+  {n:29,q:"Maliyyənin yaranmasına hansı amillər təsir etmişdir?",o:["Hərbi müdafiə tələbləri","Texniki inkişaf","Əhalinin artım tempi","Təbii sərvətlərin istifadəsi","İctimai əmək bölgüsü və əmtəə-pul münasibətləri"],a:4},
+  {n:30,q:"Maliyyənin iqtisadi mahiyyəti nəyə əsaslanır?",o:["Hüquqi normativ aktların tərtibinə","Pul vəsaitləri fondlarının yaradılması və istifadəsinə","Sosial təminat sənədlərinin hazırlanmasına","Ticarət müqavilələrinin hazırlanmasına","Əmək münasibətlərinin idarə olunmasına"],a:1},
+  {n:31,q:"Milli gəlir necə hesablanır?",o:["Ümumi məhsulun həcmi vurulur qiymət indeksinə","Pul bazasının dövriyyəsi ilə","Dövlətin borc öhdəlikləri ilə","Ümumi məhsul dəyərinə vergilər əlavə olunmaqla","Bir ildə yaradılmış ümumi məhsul dəyərindən istehlak olunmuş vasitələr və amortizasiya çıxıldıqda"],a:4},
+  {n:32,q:"Ümumi Daxili Məhsul (ÜDM) nədir?",o:["Pul ehtiyatlarının ümumi miqdarı","Xaricdə yaradılan məhsulların dəyəri","İdxal olunan məhsulların dəyəri","Ölkə ərazisində yaradılmış məhsulların illik ümumi dəyəri","Dövlətin xərclərinin həcmi"],a:3},
+  // ── 45-51 ──
+  {n:45,q:"Hansı bölmə hüquqi şəxsin nümayəndəliyi sayılır?",o:["Hüquqi şəxsin olduğu yerdən kənarda yerləşən və onun funksiyalarının hamısını həyata keçirən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən, hüquqi şəxsin mənafelərini təmsil edən və funksiyalarının yalnız bir hissəsini həyata keçirən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən və hüquqi şəxsin mənafelərini təmsil və müdafiə edən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən və hüquqi şəxsi yalnız məhkəmədə təmsil edən ayrıca bölmə"],a:2},
+  {n:46,q:"Hansı bölmə hüquqi şəxsin filialı sayılır?",o:["Hüquqi şəxsin olduğu yerdən kənarda yerləşən və onun funksiyalarının hamısını və ya bir hissəsini, o cümlədən nümayəndəlik funksiyalarını həyata keçirən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən, hüquqi şəxsin mənafelərini müdafiə edən və funksiyalarının yalnız bir hissəsini həyata keçirən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən, hüquqi mənafelərini təmsil edən və funksiyalarının yalnız bir hissəsini, o cümlədən nümayəndəlik funksiyalarını həyata keçirən ayrıca bölmə","Hüquqi şəxsin olduğu yerdən kənarda yerləşən və nümayəndəlik funksiyaları istisna olmaqla, funksiyalarının hamısını və ya bir hissəsini həyata keçirən ayrıca bölmə"],a:0},
+  {n:47,q:"Əvəzsiz müqavilələrə hansı aiddir?",o:["Saxlanma","Bağışlama","Dəyişmə","Alqı-satqı","Ssuda"],a:1},
+  {n:48,q:"Hüquqi şəxsin hüquq qabiliyyəti hansı andan yaranır?",o:["Təsis olunduğu andan","İlkin razılaşma əldə olunduğu andan","Dövlət qeydiyyatına alındığı andan","Hüquqi şəxs fəaliyyətə başladığı andan","Sənədlərin qeydiyyat üçün dövlət orqanına verildiyi andan"],a:2},
+  {n:49,q:"Daşınmaz əşyalarla bağlı müqavilə tələbləri üzrə iddia müddəti nə qədərdir?",o:["20 il","10 il","6 il","5 il","3 il"],a:2},
+  {n:50,q:"Hüquqi fakt nədir?",o:["Mülki münasibətlər","Şəxsi qeyri əmlak münasibətləri","Mülki münasibətlərinin əmələ gəlməsi, dəyişməsi, xitam edilməsinə səbəb olan həyati hallar","Əmək münasibətləri"],a:2},
+  {n:51,q:"Mülki hüquq münasibətlərinin subyektləri kimlərdir?",o:["Bütün variantlar düzgündür","Fiziki şəxslər","Yerli özünüidarə orqanları","Hüquqi şəxslər","Dövlət hakimiyyət orqanları"],a:0},
+  // ── 64-139 ──
+  {n:64,q:"Hüquqi dövlətin əsas prinsipləri hansılardır?",o:["Məhkəmə hakimiyyətinin müstəqilliyi prinsipi","Hüququn aliliyi prinsipi","Bütün variantlar düzdür","Hakimiyyətin bölgüsü prinsipi","Hamının qanun qarşısında bərabərliyi"],a:2},
+  {n:65,q:"Azərbaycan dövlətinin dünyəvi dövlət xarakteristikası özünü hansı amillərdə göstərir?",o:["Bütün variantlar düzdür","Rəsmi, qanuniləşdirilmiş dinin mövcud olmaması","Dinin dövlətdən ayrılması","Bütün dini etiqadların qanun qarşısında bərabərliyi"],a:0},
+  {n:66,q:"Azərbaycan Respublikası vətəndaşlığının prinsiplərinə hansı aiddir?",o:["Vətəndaşlıqla bağlı beynəlxalq normaların üstünlüyü","Azərbaycan Respublikası vətəndaşlarının ölkə ərazisindən qovulmasının yolverilməzliyi","Xaricdə yaşayan AR vətəndaşlarına AR-nın himayəçilik prinsipi","Bütün variantlar düzdür","Vətəndaşlığın saxlanması"],a:3},
+  {n:67,q:"Azərbaycan Respublikası vətəndaşlığının prinsiplərinə aiddir (ikinci sual)?",o:["Bərabər vətəndaşlıq prinsipi","Vətəndaşlıqdan məhrumetmənin yolverilməzliyi prinsipi","Vətəndaşlığın müstəqil müəyyən olunması","Vahid vətəndaşlıq prinsipi","Bütün variantlar düzdür"],a:4},
+  {n:68,q:"Denaturalizasiya nədir?",o:["Yaranmış ikili vətəndaşlıqdan birinin seçilməsi","Vətəndaşlığın bərpası","Bütün variantlar düzdür","Vətəndaşlığın şəxsi vəsatətlə əldə edilməsi","Vətəndaşlıqdan çıxma"],a:4},
+  {n:69,q:"Hansı mübahisələrlə bağlı məhkəməyə müraciət etməmişdən öncə mütləq mediasiya prosesindən keçilməlidir?",o:["Cinayət işləri","Yetkinlik yaşına çatmayanların cinayət işləri ilə bağlı","Hərbi işlər","Ailə, iqtisadi və əmək mübahisələrlə bağlı","İslah işləri"],a:3},
+  {n:70,q:"Hansı xüsusiyyət prezidentli respublikaya aid edilir?",o:["Prezidentin parlamentdə seçkisi","Prezidentin parlament qarşısında hesabat verməsi","Prezidentin icraedici hakimiyyətin başçısı olması","Hökumətin parlament qarşısında məsuliyyəti"],a:2},
+  {n:71,q:"Konstitusiyaya görə Azərbaycan Respublikası vətəndaşları vətəndaşlıqdan məhrum edilə bilərmi?",o:["Cinayətə görə vətəndaşlıqdan məhrum edilir","Vətəndaşlıqdan məhrum etməyə yol verilir","Prezident vətəndaşlıqdan məhrum edə bilər","Pasport itirən vətəndaşlıqdan məhrum edilir","Vətəndaşlıqdan məhrum etməyə yol verilmir"],a:4},
+  {n:72,q:"Dövlətin funksiyaları anlayışına aiddir:",o:["Dövlətin sosial təyinatı, onun fəaliyyətinin xarakterinin və məzmununun ifadəsi","Dövlət hakimiyyətinin icrası metodları","Dövlət fəaliyyətinin növləri","Dövlətin səlahiyyətinə aid olan məsələlərin həlli","İctimai təşkilatların fəaliyyəti"],a:0},
+  {n:73,q:"Xətalar hüquq pozuntusunun subyektindən, vurulmuş ziyanın xarakterindən asılı olaraq hansı növlərə bölünür?",o:["İnzibati, intizam və mülki hüquqpozmalara","Xətalara ancaq mülki hüquqpozmalar aiddir","Cinayətlərə və inzibati hüquqpozmalara","Cinayətlərə, inzibati, intizam və mülki hüquqpozmalara","Cinayətlərə, intizam və mülki hüquqpozmalara"],a:0},
+  {n:74,q:"Hüquq pozuntusunun subyektiv cəhətini aşağıdakılardan hansı təşkil edir?",o:["Qanunla müəyyən olunmuş yaş həddinə çatan, öz əməlinə görə cavabdehlik daşıya bilən, anlaqlı fiziki şəxslər","Hüquqla tənzimlənən və mühafizə olunan ictimai münasibətlərə ziyan vuran hüquqazidd əməl","Şəxsin törətdiyi hüquqazidd əmələ psixoloji münasibətini ifadə etməklə xarakterizə olunan təqsiri","Hüquqla tənzimlənən və mühafizə olunan ictimai münasibətlər"],a:2},
+  {n:75,q:"Hüquq normaları sistemində ifadə olunan ümumməcburi davranış qaydalarının məcmusu kimi \"hüquq\" anlayışı hansına aiddir?",o:["Subyektiv mənada hüquq","Tənzimləyici mənada hüquq","Obyektiv mənada hüquq","Qoruyucu mənada hüquq","Məcburetmə mənada"],a:2},
+  {n:76,q:"Hüquq münasibətinin obyektinə aiddir:",o:["Hüquq münasibəti subyektlərinin fəaliyyətlərinin yönəldiyi maddi və qeyri-maddi nemətlərdir","Hüquq münasibətinin iştirakçıları, əsasən fiziki və hüquqi şəxslərdir","Subyektlərə məxsus olan qarşılıqlı hüquq və vəzifələrdir","Fiziki şəxslərə məxsus olan hüquq qabiliyyətidir","Fiziki şəxslərə məxsus olan fəaliyyət qabiliyyətidir"],a:0},
+  {n:77,q:"Dövlət idarəçiliyinə qəsd edən hüquqpozmalara aiddir:",o:["Öhdəliklərin icra olunmaması","İntizam xətaları","Təhsil intizamına qəsd edən hüquq pozuntuları","Mülki hüquq pozuntuları","İnzibati xətalar"],a:4},
+  {n:78,q:"Dövlətin ali nümayəndəli orqanı tərəfindən qəbul edilən və yüksək hüquqi qüvvəyə malik olan normativ hüquqi akt hansıdır?",o:["Prezidentin sərəncamı","Qanunqüvvəli akt","Milli Məclisin qərarları","Qanun","Prezidentin fərmanı"],a:3},
+  {n:79,q:"İnsanın iradəsindən asılı olmayaraq baş verən hüquqi əhəmiyyətli faktlar hansılardır?",o:["İntizam xətaları","Hərəkətlər","Cinayətlər","Hadisələr","İnzibati xətalar"],a:3},
+  {n:80,q:"«Norma» latın dilindən tərcümədə hansı mənanı verir?",o:["Əxlaq mənasını","Etibarnamə mənasını","Müqavilə mənasını","Adət mənasını","Qayda, nümunə mənasını"],a:4},
+  {n:81,q:"Hüquq pozuntusunun obyektiv cəhətini hansı təşkil edir?",o:["Hüquqla tənzimlənən və mühafizə olunan ictimai münasibətlər","Şəxsin törətdiyi hüquqazidd əmələ psixoloji münasibətini ifadə etməklə xarakterizə olunan təqsir","Qanunla müəyyən olunmuş yaş həddinə çatan, anlaqlı fiziki şəxslər","Hüquqla tənzimlənən münasibətlərə ziyan vuran hüquqazidd əməl, habelə onunla ictimai-təhlükəli nəticə arasındakı səbəbli əlaqə"],a:3},
+  {n:82,q:"Hüquq pozuntusunun obyektini hansı təşkil edir?",o:["Qanunla müəyyən olunmuş yaş həddinə çatan, anlaqlı fiziki şəxslər","Şəxsin törətdiyi hüquqazidd əmələ psixoloji münasibətini ifadə etməklə xarakterizə olunan təqsir","Hüquqla tənzimlənən münasibətlərə ziyan vuran hüquqazidd əməl","Hüquqla tənzimlənən və mühafizə olunan ictimai münasibətlər"],a:3},
+  {n:83,q:"Dövlətdən asılı olmayaraq təşəkkül tapmış hüquq mənbələri hansıdır?",o:["Qanunlar","Məhkəmə presedenti","Beynəlxalq müqavilələr","Qanunqüvvəli aktlar","Hüquqi adətlər"],a:4},
+  {n:84,q:"Normadakı göstərişin xüsusiyyətlərindən asılı olaraq hüquq normalarını necə təsnifləşdirmək olar?",o:["Müddətsiz və müvvəqəti normalar","Səlahiyyətverici, məcburedici, qadağanedici normalar","Konstitusiya normaları, qanun normaları","Ümumi və ya müəyyən ərazi üçün tətbiqi nəzərdə tutulmuş normalar","İmperativ və dispozitiv normalar"],a:1},
+  {n:85,q:"Hüquq münasibətlərinin tərkibinə daxildir:",o:["Hüquq münasibətlərinin tərkibi","Subyektlərin subyektiv hüquq və vəzifələri","Hüquq münasibətlərinin subyekti, məzmunu","Hüquq münasibətlərinin subyekti, subyektiv cəhəti, obyekti, obyektiv cəhəti","Hüququn subyekti, hüquq münasibətlərinin məzmunu, obyekti"],a:4},
+  {n:86,q:"Konstitusiyaya əsasən dövlətin ali məqsədi hansıdır?",o:["Xalqın iradəsinin həyata keçirilməsinin təmin edilməsi","Xalqın rifahının yüksəldilməsi","Xalqın milli maraqlarının təmin edilməsi","İnsan və vətəndaş hüquqlarının və azadlıqlarının təmin edilməsi"],a:3},
+  {n:87,q:"Dövlətin mühüm məsələləri ilə bağlı qərarların qəbul edilməsində Azərbaycan xalqı hansı vasitə ilə iştirak edir?",o:["Təyinetmə yolu ilə","Seçkilər yolu ilə","İmpiçment yolu ilə","Referendum yolu ilə","Özünüidarəetmə yolu ilə"],a:3},
+  {n:88,q:"Hüquq pozuntusunun əsas əlamətləri:",o:["Pozulmuş hüquqlar, təqsir, hüquqazidd əməl","Hüquqazidd əməl – hərəkət; subyekt, obyekt, təqsir","Subyekt və obyektin mövcudluğu","Hüquqazidd əməl, subyekt-anlaqlı şəxs; obyekt; ictimai münasibətlər","Hüquqazidd əməl; subyekt-anlaqlı şəxs; təqsir"],a:4},
+  {n:89,q:"Hüquqi dövlətdə qanunlar kim tərəfindən qəbul edilir?",o:["Konstitusiya Məhkəməsi tərəfindən","Parlament","Prezident tərəfindən","Müəyyən orqanların səlahiyyətli şəxsləri tərəfindən","İdarəedici orqan tərəfindən"],a:1},
+  {n:90,q:"Konstitusiya hüquq normalarına əsasən hər bir vətəndaşın hüquqlarının müdafiəsinə təminat verən hansıdır?",o:["Həmkarlar ittifaqları","Ombudsmanlar","İctimai təşkilatlar","Dövlət","Elmi-yaradıcılıq mərkəzləri"],a:3},
+  {n:91,q:"Dispozitiv və imperativ normalar hansı əlamətlərinə görə təsnifatlandırılır?",o:["Məcburetmə xarakteri daşıdığına görə","Səlahiyyətverici və qadağanedici olduğuna görə","Xüsusiyyətlərinə görə","Müəyyənlik dərəcəsinə görə","Ümumi xarakter daşıdığına görə"],a:3},
+  {n:92,q:"Mediasiya qaydasında hansı məsələlər həll oluna bilər?",o:["İqtisadi mübahisələr","Qarşılıqlı razılıqla mülki işlər","Əmək mübahisələri","Ailə münasibətlərindən irəli gələn mübahisələr","Hamısı"],a:4},
+  {n:93,q:"Ədalət mühakiməsini həyata keçirən məhkəmə sisteminə daxildir (birinci sual):",o:["Azərbaycan Respublikasının İqtisad Məhkəməsi","Azərbaycan Respublikasının Apellyasiya Məhkəməsi","Ağır cinayətlərə dair işlər üzrə məhkəmə","Azərbaycan Respublikasının Ali Məhkəməsi","Hamısı"],a:4},
+  {n:94,q:"Ədalət mühakiməsini həyata keçirən məhkəmə sisteminə daxildir (ikinci sual):",o:["Naxçıvan Muxtar Respublikası Ali Məhkəməsi","Yerli iqtisad məhkəmələri","Beynəlxalq müqavilələrə dair AR İqtisad Məhkəməsi","Hamısı","Hərbi məhkəmələr"],a:3},
+  {n:95,q:"Ədalət mühakiməsini həyata keçirən məhkəmə sisteminə daxildir (üçüncü sual):",o:["Hamısı","Ağır cinayətlərə dair hərbi məhkəmə","Rayon (şəhər) məhkəmələri","Ağır cinayətlərə dair AR məhkəməsi","Hərbi məhkəmələr"],a:0},
+  {n:96,q:"Azərbaycan Respublikasının ən yuxarı məhkəmə orqanı hansıdır?",o:["Konstitusiya Məhkəməsi","Ağır Cinayətlərə Məhkəməsi","İqtisad Məhkəməsi","Ali Məhkəmə","Apellyasiya Məhkəməsi"],a:0},
+  {n:97,q:"Prezidentin səlahiyyətlərinin vaxtından əvvəl xitamı hansı hallarda baş verir?",o:["Konstitusiya ilə nəzərdə tutulmuş hallarda vəzifəsindən kənarlaşdırıldıqda","Bütün variantlar aiddir","Səhhətinə görə öz səlahiyyətlərini icra etmək qabiliyyətini tamamilə itirdikdə","Prezident istefa verdikdə"],a:1},
+  {n:98,q:"Azərbaycan Respublikasının prezidenti seçilə bilər:",o:["Ağır cinayətə görə məhkum olunmayan","AR-nın ərazisində 10 ildən artıq daimi yaşayan","Seçkilərdə iştirak etmək hüququna malik olan","Bütün variantlar aiddir","Ali təhsilli, ikili vətəndaşlığı olmayan AR vətəndaşı"],a:3},
+  {n:99,q:"Qanunvericilik təşəbbüsü ...",o:["Qanunun sanksiyalaşdırılması","Qanunun qəbul edilməsi","Səlahiyyətli subyektin qanun layihəsinin parlamentin səlahiyyətli orqanına rəsmi surətdə təqdim edilməsi","Səlahiyyətli subyektin qanun layihəsinin prezidentə rəsmi surətdə təqdim edilməsi","Qanuna dair təkliflərin Nazirlər Kabinetinə rəsmi surətdə təqdim edilməsi"],a:2},
+  {n:100,q:"Qanunvericilik prosesinin ilkin mərhələsi hansıdır?",o:["Qanunun sanksiyalaşdırılması","Promulqasiya","Qanunun qəbul edilməsi","Qanunvericilik təşəbbüsü","Dövlət başçısı tərəfindən imza edilməsi"],a:3},
+  {n:101,q:"Milli Məclisin deputatı hansı hallarda mandatdan məhrum edilir (birinci sual)?",o:["Özü imtina etdikdə","Sahibkarlıq, kommersiya və başqa ödənişli fəaliyyətlə məşğul olduqda","Hamısı","Din xadimi olduqda","Dövlət orqanlarında vəzifə tutduqda"],a:2},
+  {n:102,q:"Milli Məclisin deputatı hansı hallarda mandatdan məhrum edilir (ikinci sual)?",o:["Başqa dövlətin vətəndaşlığını qəbul etdikdə","Cinayət törətdikdə və məhkəmənin qanuni qüvvəyə minmiş hökmü olduqda","Hamısı","AR vətəndaşlığından çıxdıqda","Seçkilər zamanı səslərin düzgün hesablanmadığı aşkar olunduqda"],a:2},
+  {n:103,q:"Azərbaycan Respublikasının Milli Məclisi hansı daimi komitələri yaradır (birinci sual)?",o:["Mədəniyyət komitəsi","Hamısı","Beynəlxalq münasibətlər və parlamentlərarası əlaqələr komitəsi","Elm və təhsil komitəsi"],a:1},
+  {n:104,q:"Azərbaycan Respublikasının Milli Məclisi hansı daimi komitələri yaradır (ikinci sual)?",o:["İctimai birliklər və dini qurumlar komitəsi","Regional məsələlər komitəsi","Ailə, qadın və uşaq məsələləri komitəsi","Gənclər və idman komitəsi","Hamısı"],a:4},
+  {n:105,q:"Azərbaycan Respublikasının Milli Məclisi hansı daimi komitələri yaradır (üçüncü sual)?",o:["Səhiyyə komitəsi","Aqrar sənaye komitəsi","İqtisadi siyasət, sənaye və sahibkarlıq komitəsi","Hamısı","Əmək və sosial siyasət komitəsi"],a:3},
+  {n:106,q:"Azərbaycan Respublikasının Milli Məclisi hansı daimi komitələri yaradır (dördüncü sual)?",o:["Təbii ehtiyatlar, energetika və ekologiya komitəsi","İnsan hüquqları komitəsi","Hamısı","Müdafiə, təhlükəsizlik, və korrupsiya ilə mübarizə komitəsi","Hüquq siyasəti və dövlət quruculuğu komitəsi"],a:2},
+  {n:107,q:"Milli Məclis öz fəaliyyətində hansı prinsipləri üstün tutur?",o:["Aşkarlıq","Hamısı düzdür","Çoxpartiyalılıq","Məsələlərin sərbəst müzakirə və müstəqil həll olunması","Siyasi plüralizm"],a:1},
+  {n:108,q:"Milli Məclisin səlahiyyətlərinə hansı aiddir?",o:["Milli Bankın İdarə Heyətinin üzvlərini təsdiq edir","Prezidentin müraciətinə əsasən müharibə və sülhə razılıq verilməsi","Prezidentin impiçment qaydasında vəzifədən kənarlaşdırılması","Hamısı düzdür","Beynəlxalq müqavilələri təsdiq edir"],a:3},
+  {n:109,q:"AR Konstitusiyasının 95-ci maddəsinə görə Milli Məclis:",o:["Baş prokurorun təyin olunmasına razılıq verir","Prezidentin təqdim etdiyi hərbi doktrinanı təsdiq edir","Dövlət büdcəsini təsdiq edir","Hamısı düzdür","Baş nazirin təyin olunmasına razılıq verir"],a:3},
+  {n:110,q:"AR-nın Prezidenti öz səlahiyyətləri çərçivəsində:",o:["Fərman və sərəncam verir","Əmrlər verir","Göstərişlər verir","Qaydalar müəyyən edir","Ancaq qərarlar qəbul edir"],a:0},
+  {n:111,q:"İqtisadi hüquq və azadlıqlar hansılardır?",o:["Sağlam ətraf mühitdə yaşamaq hüququ, mədəniyyət hüququ","İstirahət hüququ, nikah hüququ","Ana dilindən istifadə hüququ","Mülkiyyət hüququ, azad sahibkarlıq hüququ"],a:3},
+  {n:112,q:"Azərbaycan Respublikasının Konstitusiyası hansı tarixdə qəbul edilmişdir?",o:["16 oktyabr 2003-cü ildə","12 noyabr 1995-ci ildə","12 sentyabr 2002-ci ildə","12 oktyabr 1995-ci ildə","7 dekabr 1994-cü ildə"],a:1},
+  {n:113,q:"Konstitusiyaya görə Azərbaycan Respublikası ...",o:["Hüquqi, federativ, dünyəvi bir dövlət","Demokratiya cəhətdən tarixi qədim olan dövlət","Neft strategiyası həyata keçirən dövlət","Demokratik, hüquqi, dünyəvi, unitar respublikadır","Zaqafqaziyada vahid demokratik dövlət"],a:3},
+  {n:114,q:"Mülkiyyət hüququnun əldə edilməsinin ilkin üsuluna aiddir:",o:["Tapıntı","Özbaşına tikilmiş tikililər üzərində mülkiyyət hüququnun əldə edilməsi","Nəzarətsiz heyvanlar","Hamısı","Dəfinə"],a:3},
+  {n:115,q:"Vətəndaşlığın anadangəlmə əldə edilməsi üsulu necə adlanır?",o:["Transfert","Naturalizasiya","Filiasiya","Optasiya","Reinteqrasiya"],a:2},
+  {n:116,q:"Vindikasiya iddiası ilə hansı hüquqlar müdafiə olunur?",o:["Əsassız varlanmadan yaranan əmlakın geri tələb olunması hüququ","Öhdəlik hüququ","Şəxsi qeyri-əmlak hüquqları","Mülkiyyətçinin iradəsindən asılı olmayaraq sahiblikdən çıxan əmlakın geri tələb edilməsi hüququ","Müqavilə ilə kirayə verilən əmlakın geri tələb olunması hüququ"],a:3},
+  {n:117,q:"Hansı mülkiyyət hüququnun anlayışını əhatə etmir?",o:["Sahiblik hüququ","Sərəncam hüququ","Daşınma hüququ","İstifadə hüququ"],a:2},
+  {n:118,q:"Daşınmaz əşyalar hansılardır?",o:["Hava gəmiləri","Yeri dəyişdirərkən təyinatını dəyişməyən əşyalar","Nəqliyyat vasitələri","Torpaq və onunla möhkəm bağlı olan digər əşyalar","Qiymətli kağızlar"],a:3},
+  {n:119,q:"Hansı fiziki şəxslər mülkiyyət hüququnun subyekti ola bilməz?",o:["Mülki fəaliyyət qabiliyyəti olan şəxslər","Məhdud fəaliyyət qabiliyyəti olan şəxslər","Nisbi fəaliyyət qabiliyyətli fiziki şəxslər","Cinayət əməlinə görə məhkum edilmiş şəxslər","Hüquq qabiliyyəti olmayan şəxslər"],a:4},
+  {n:120,q:"Xüsusi mülkiyyət hüququnun subyekti kim ola bilər?",o:["Əcnəbilər və vətəndaşlığı olmayan şəxslər","Fiziki və hüquqi şəxslər","Bələdiyyə qurumları","Dövlət qurumları","Hüquqi şəxslərin idarələri və filialları"],a:1},
+  {n:121,q:"Əqli mülkiyyət hüququnun obyekti deyil:",o:["İşgüzar nüfuz","İxtiralar","Elm əsərləri","Sənaye nümunəsi"],a:0},
+  {n:122,q:"Hansı hallarda mülkiyyət hüququ məhdudlaşdırıla bilər?",o:["Qanunda müəyyənləşdirilən hallarda","İnzibati orqanların razılığı ilə","Mülkiyyətçi öz əmlakından düzgün istifadə etmədikdə","Mülkiyyətçinin razılığı ilə","Qonşunun tələbi ilə"],a:0},
+  {n:123,q:"Mülkiyyət hüququ vətəndaşların hansı hüquq və azadlıqlarının kateqoriyasına aiddir?",o:["Siyasi","Şəxsi","Sosial-iqtisadi","Mədəni"],a:2},
+  {n:124,q:"Daşınmaz əmlakın dövlət reyestrində qeydiyyat üçün rüsum tutulurmu?",o:["Yalnız xarici dövlətlər rüsum ödəyir","Xeyr","Yalnız əcnəbilər ödəyir","Yalnız vətəndaşlığı olmayan şəxslər ödəyir","Bəli"],a:4},
+  {n:125,q:"Əşyaya sahiblik nədir?",o:["Əşyadan daimi istifadə etmək","Əşyaya faktiki sahibliyə nail olmaq","Əşyadan müvəqqəti istifadə etmək","Əşyanı saxlayan"],a:1},
+  {n:126,q:"Daşınmaz əmlaka mülkiyyət hüququ hansı andan əmələ gəlir?",o:["Əmlak verildiyi andan","Müqavilə bağlandığı andan","Müqavilənin notariatda təsdiq edildiyi andan","Dövlət reyesterində qeydə alındığı andan","Əşyanın ləvazimatı və sənədləri verildiyi andan"],a:3},
+  {n:127,q:"Azərbaycan Respublikasının mülkiyyətinə nə daxildir?",o:["Azərbaycan Respublikasına mülkiyyət hüququ ilə mənsub olan əmlak","AR əmlak mülkiyyətçisi ola bilməz","Qanunla nəzərdə tutulan konkret əmlak","Xəzər dənizinin AR sektorunda olan təbii sərvətlər"],a:0},
+  {n:128,q:"Ümumdünya İnsan Hüquqları Bəyannaməsi (ÜİHB) nə vaxt qəbul olunmuşdur?",o:["1950-ci ildə","1919-cu ildə","1918-ci ildə","1948-ci ildə","1941-ci ildə"],a:3},
+  {n:129,q:"Azərbaycan Respublikasında 18 iyun ........... qeyd olunur.",o:["\"Konstitusiya günü\" kimi","\"İnsan hüquqları günü\" kimi","\"Müstəqillik günü\" kimi","\"Qurtuluş günü\" kimi","\"Dirçəliş günü\" kimi"],a:1},
+  {n:130,q:"Təbiət obyektlərinin mühafizəsi, yaxşılaşdırılması ilə yanaşı, onlardan istifadə hansı əsas istiqamətdə aparılır?",o:["1, 3, 4","2, 4","1, 3","1, 2"],a:3},
+  {n:131,q:"Mülkiyyət hüququnun əldə edilməsinin ilkin üsuluna aid (ikinci sual):",o:["Hamısı","Sahibsiz əmlak üzərində mülkiyyət hüququ","Yığılması hamıya müyəssər olan əmlakın mülkiyyətə götürülməsi","Emal","Yeni hazırlanmış əşya üzərində mülkiyyət hüququnun əldə edilməsi"],a:0},
+  {n:132,q:"Mülkiyyət hüququnun törəmə üsulla əldə edilməsinə aiddir:",o:["Hüquqi şəxsin ləğvi zamanı əmlaka mülkiyyət hüququnun əldə edilməsi","Rekvizisiya və müsadirə","Hamısı","Milliləşdirmə","Özəlləşdirmə"],a:2},
+  {n:133,q:"Ümumi mülkiyyət nədir?",o:["Dövlət və ya bir neçə hüquqi şəxsin eyni bir əmlak üzərində mülkiyyəti","İki və ya bir neçə şəxsin (mülkiyyətçilərin) eyni bir əmlak üzərində mülkiyyəti","Dövlətin və bələdiyyələrin eyni bir əmlak üzərində mülkiyyəti","Heç biri"],a:1},
+  {n:134,q:"Su təsərrüfatı obyektləri üzərində bələdiyyə mülkiyyəti hansı şərtlərlə yaradıla bilər?",o:["Dövlət mülkiyyətindəki su obyektlərini bələdiyyə mülkiyyətinə verməklə","Fiziki və hüquqi şəxslərin mülkiyyətindəki su obyektlərini əqdlər əsasında almaqla","Bələdiyyələr tərəfindən yeni su obyektləri yaratmaqla","Qanunvericilikdə nəzərdə tutulmuş digər şərtlərlə","Hamısı düzdür"],a:4},
+  {n:135,q:"Bələdiyyə əmlakının yaranması mənbələri:",o:["Fiziki və hüquqi şəxslərin bələdiyyələrə könüllü maddi yardım şəklində verilən əmlak","Bələdiyyələrin mülkiyyətinə verilən dövlət əmlakı","Varisi olmayan əmlakın bələdiyyələrə keçməsi yolu ilə əldə olunan əmlak","Bələdiyyələrin fəaliyyəti nəticəsində əldə olunan əmlak","Hamısı"],a:4},
+  {n:136,q:"Vicdansız sahib kimdir?",o:["Sərəncam vermək hüququ olan, istifadə etmək hüququ olmayan sahib","Sərəncam vermək hüququ olmadığını bilməli olan sahib","Sahiblik hüququ olmadığını bilən və ya bilməli olan sahib","Sahiblik hüququ olduğunu bilən və ya bilməli olan sahib"],a:2},
+  {n:137,q:"Qanunsuz sahibliyin növləri hansılardır?",o:["Fərdi və kollektiv","Daşınar və daşınmaz əmlak","Qanuni və qanunsuz","Vicdanlı və vicdansız"],a:3},
+  {n:138,q:"Qanunsuz sahiblik nədir?",o:["Hüquqi əsasları olmayan sahiblik","Qanunda göstərilməyən sahiblik","Hüquqi əsasları olan müvəqqəti sahiblik","Daşınar əşya üzərində sahiblik"],a:0},
+  {n:139,q:"Titul sahibliyi nədir?",o:["Əsassız sahiblik","Qanuni sahiblik","Qanunsuz sahiblik","Vicdansız sahiblik"],a:1},
+  // ── 149-194 ──
+  {n:149,q:"Müəllifin əmlak hüquqları əsərin yaradılması ilə yaranır, müəllifin bütün həyatı boyu və ölümündən sonra neçə il müddətində qüvvədə olur?",o:["100 il","20 il","70 il","50 il","10 il"],a:2},
+  {n:150,q:"Müəlliflik hüquqlarının verilməsi və keçməsi prinsipinə aiddir:",o:["Müəlliflik hüquq normaları ilə qorunan əsərdən müəllifin razılığı olmadan istifadə oluna bilər","Əsəri yaradan şəxs onun müəllifi sayılır","Müəllif öz əsərinin hüquqi müqəddəratını sərbəst müəyyən etmək səlahiyyətinə malikdir","Müəlliflik hüquqları müəllif müqavilələri üzrə verilir və vərəsəlik qaydasında keçir"],a:3},
+  {n:151,q:"Əsərdən sərbəst istifadə prinsipinə aiddir:",o:["Qanunda nəzərdə tutulan hallarda müəllifin razılığı olmadan istifadə oluna bilər","Yaratdığı əsərdən istifadə olunacağı məsələsini yalnız müəllifi həll edə bilər","Müəlliflik hüquqları müəllif müqavilələri üzrə verilir","Müəllif öz əsərinin hüquqi müqəddəratını sərbəst müəyyən etmək səlahiyyətinə malikdir","Əsəri yaradan şəxs onun müəllifi sayılır"],a:0},
+  {n:152,q:"Müəllifin əsərdən istifadəyə müstəsna hüququnun tanınması prinsipinə aiddir:",o:["Müəllifin razılığı olmadan istifadə oluna bilər","Yaratdığı əsərdən istifadə olunacağı məsələsini yalnız müəllifi həll edə bilər","Əsəri yaradan şəxs onun müəllifi sayılır","Müəllif öz əsərinin hüquqi müqəddəratını sərbəst müəyyən etmək səlahiyyətinə malikdir","Müəlliflik hüquqları müəllif müqavilələri üzrə verilir"],a:1},
+  {n:153,q:"Müəlliflik hüququnun tanınması prinsipinə aiddir:",o:["Müəlliflik hüquqları müəllif müqavilələri üzrə verilir","Müəllif öz əsərinin hüquqi müqəddəratını sərbəst müəyyən etmək səlahiyyətinə malikdir","Əsəri yaradan şəxs onun müəllifi sayılır","Müəllifin razılığı olmadan istifadə oluna bilər","Yaratdığı əsərdən istifadə olunacağı məsələsini yalnız müəllifi həll edə bilər"],a:2},
+  {n:154,q:"Müəllifin şəxsi qeyri-əmlak hüquqlarının özgəninkiləşdirilməməsi prinsipinə aiddir:",o:["Müəllif öz əsərinin hüquqi müqəddəratını sərbəst müəyyən etmək səlahiyyətinə malikdir","Əsəri yaradan şəxs onun müəllifi sayılır","Yaratdığı əsərdən istifadə olunacağı məsələsini yalnız müəllifi həll edə bilər","Müəlliflik hüquqları müəllif müqavilələri üzrə verilir","Müəllifin razılığı olmadan istifadə oluna bilər"],a:0},
+  {n:155,q:"Müəlliflik hüququnun prinsiplərinə aid deyil:",o:["Müəlliflik hüququnun tanınması prinsipi","Mülki hüquqların maneəsiz həyata keçirilməsinə şərait yaradılması","Müəllifin əsərdən istifadəyə müstəsna hüququnun tanınması prinsipi","Müəlliflik hüquqlarının verilməsi və keçməsi prinsipi","Əsərdən sərbəst istifadə prinsipi"],a:1},
+  {n:156,q:"Müəlliflik hüququnun əsas başlanğıcları və çıxış ideyaları onun ....... hesab edilir?",o:["Onun qanunları hesab edilir","Onun predmeti hesab edilir","Onun prinsipləri hesab edilir","Onun metodu hesab edilir","Onun sistemi hesab edilir"],a:2},
+  {n:157,q:"Elm, ədəbiyyat və incəsənət əsərlərinin yaradılması və istifadəsi üzrə münasibətləri tənzimləyən hüquq normalarının məcmusu:",o:["Əsərdən sərbəst istifadə hüququ","Obyektiv mənada müəlliflik hüququdur","Müəllifin şəxsi qeyri-əmlak hüquqları","Müəllifin əsərdən istifadəyə müstəsna hüququ","Subyektiv mənada müəlliflik hüququ"],a:1},
+  {n:158,q:"Əqli yaradıcılıq nəticələrinin qorunması məqsədi ilə onların müəlliflərinə verilən müstəsna hüquq hansıdır?",o:["Sərəncam hüququ","Sahiblik hüququ","İstifadə hüququ","Əqli mülkiyyət hüququ"],a:3},
+  {n:159,q:"Konstitusiya nə zaman fəaliyyətə başlayır?",o:["Hüquqi qüvvəyə mindikdə","Qəbul edildiyi tarixi günlərdən","Parlament sədri təsdiq edən kimi","Seçki komissiyasının qərarı ilə","Layihə Milli Məclisdən keçən kimi"],a:0},
+  {n:160,q:"Azərbaycanda hüququn mənbələri (formaları) hansılardır?",o:["Beynəlxalq hüquqi aktlar; qanunlar; qanunqüvvəli aktlar","Hüquqi presedent; normativ-hüquqi akt; qanunlar","Hüquqi adət; hüquqi presedent; normativ-hüquqi akt","Hüquqi adət; hüquqi presedent; beynəlxalq hüquqi aktlar","Məhkəmə təcrübəsi; qanunqüvvəli aktlar; hüquqi adət"],a:0},
+  {n:161,q:"Hansı beynəlxalq-hüquqi məsuliyyətin ifadə formalarına aid deyil?",o:["Satisfaksiya","Təkrar etməmə təminatları","Retorsiya","Kompensasiya","Restitusiya"],a:2},
+  {n:162,q:"Beynəlxalq hüquqda kompensasiya nəyə deyilir?",o:["Beynəlxalq hüquq pozuntusu törətmiş dövlətin qeyri-maddi məsuliyyətinin əsas forması","Zərərçəkmiş dövlətin tətbiq etdiyi cavab tədbiri","Hüquq pozuntusu törədilməmişdən qabaq mövcud olmuş vəziyyətin bərpa edilməsi","Delikvent dövlətin öhdəlik götürməsi","Dövlətə vurulmuş maddi zərərin pul formasında ödənilməsi"],a:4},
+  {n:163,q:"6 illik iddia müddəti hansı hallarda şamil olunur?",o:["Daşınar əmlakla bağlı iddia müddətində","Ümumi iddia müddətləri üzrə","Heç bir halda","Daşınmaz əmlakla bağlı iddia müddətində","Müqavilə tələbləri üzrə iddia müddətində"],a:3},
+  {n:164,q:"Aparteid vətəndaş kimə deyilir?",o:["İkili vətəndaşlığı olan şəxsə","Dövlətlə siyasi əlaqəsi olmayan şəxsə","Vətəndaşlığı olmayan şəxsə","Dövlətlə hüquqi əlaqəsi olmayan şəxsə","Əcnəbi şəxsə"],a:2},
+  {n:165,q:"1995-ci il Konstitusiyasının strukturu necədir?",o:["12 bölmə 12 fəsil, 168 maddədən ibarətdir","5 bölmə 12 fəsil, 158 maddədən ibarətdir","5 bölmə 12 fəsil, 182 maddədən ibarətdir","Preambula, 5 fəsil, 174 maddədən ibarətdir","12 bölmə 5 fəsil, 138 maddədən ibarətdir"],a:1},
+  {n:166,q:"Vətəndaşlığın şəxsi vəsatət ilə əldə edilməsi necə adlanır?",o:["Filiasiya","Reinteqrasiya","Transfert","Naturalizasiya","Optasiya"],a:3},
+  {n:167,q:"Vətəndaşlığın əldə edilməsi və itirilməsi qaydaları hansı qanunverici aktla tənzimlənir?",o:["\"Vətəndaşlıq haqqında\" AR qanunu ilə","AR Mülki-Prosessual Məcəllə ilə","Nazirlər kabinetinin qərarları ilə","AR Mülki Məcəlləsi ilə","Beynəlxalq müqavilələrlə"],a:0},
+  {n:168,q:"Xalq hakimiyyətinin mövcudluğu necə həyata keçirilir?",o:["Azad seçkilərlə","Hökumətin qərarı ilə","Yerli hakimiyyət orqanlarının qərarı ilə","Dövlət başçısının əmri ilə","Parlament tərəfindən qəbul edilmiş qanunla"],a:0},
+  {n:169,q:"Mülkiyyətçinin iradəsi nədə ifadə olunur?",o:["Vicdanlı sahiblikdə","Əmlakı mühafizə etməkdə","Maddi nemətlərin istehsalı, bölgüsü, dəyişməsində","Sahiblik, istifadə, sərəncamda","Mülkiyyət hüququnun xitamında"],a:3},
+  {n:170,q:"Mülkiyyətçi hüquqları əmlaka sahiblik edənə hansı hallarda mənsub ola bilər?",o:["Mülkiyyətçi hüquqları əmlaka sahiblik edənə mənsub ola bilməz","Mülki məcəllədə nəzərdə tutulan əsasla","Uzun müddətli vicdanlı sahiblik əsasında","Yalnız müqavilədə nəzərdə tutulan əsasla","Mülki Məcəllədə və ya müqavilədə nəzərdə tutulan əsasla"],a:4},
+  {n:171,q:"Şəxsi qeyri əmlak münasibətlərinə aiddir?",o:["Hüquqi faktlar","Əqdlər","Mülki hüququn subyektləri","Şəxsi qeyri-əmlak xarakterli hüquq münasibətləri, yaradıcı fəaliyyəti özündə cəmləşdirən hüquq münasibətləri, təşkilati hüquq münasibətləri","Mülki hüququn obyektləri"],a:3},
+  {n:172,q:"AR-nın Prezidenti seçilir:",o:["Baş nazirin təqdimatı əsasında","Xalq tərəfindən","Ali Məhkəmənin qərarı ilə","Konstitusiya Məhkəməsinin təqdimatı əsasında","Milli Məclis tərəfindən"],a:1},
+  {n:173,q:"Müvəkkil öz təşəbbüsü ilə hansı hallarda araşdırma apara bilər?",o:["Ali Məhkəmənin müvafiq şikayət baxılması barədə qərar olduqda","Müvəkkil bütün hallarda öz təşəbbüsü ilə araşdırma aparır","İnsan hüquqları pozulmuş şəxsin razılığı ilə xüsusi əhəmiyyət kəsb edən hallarda","Baş prokuroluğun təqdimatı əsasında","Müvəkkilin belə bir səlahiyyəti yoxdur"],a:2},
+  {n:174,q:"Konstitusiya hüququnun mənbələri hansılardır?",o:["Konstitusiya özü, qanunlar, fərmanlar, qərarlar və s.","Yalnız Azərbaycan Respublikasının norma və qanunları","Yalnız AR prezident fərmanları","AR prezidentinin sərəncamları","Konstitusiya aktı, məhkəmə qərarları və müqavilələr"],a:0},
+  {n:175,q:"Əsas insan hüquqları və azadlıqları hər kəsə hansı andan mənsubdur?",o:["15 yaşına çatandan","16 yaşına çatandan","Doğulduğu andan","14 yaşına çatandan","18 yaşına çatandan"],a:2},
+  {n:176,q:"Azərbaycan Respublikası Konstitusiyasının mətnində dəyişikliklər yalnız necə qəbul edilə bilər?",o:["AR Prezidenti edə bilər","AR Milli Məclisi edə bilər","AR Nazirlər Kabineti edə bilər","AR Konstitusiya Məhkəməsi edə bilər","Referendumla qəbul edilə bilər"],a:4},
+  {n:177,q:"Konstitusiya hansı funksiyaları yerinə yetirir?",o:["Xarici siyasətlə bağlı olan məsələni tənzimləyir","Vətəndaşa cərimə cəzasının həddini müəyyən edir","Qanun pozuntularına qarşı mübarizəni nizamlayır","Konstitusiya hüquq münasibətlərini nizama salır","Yalnız seçkilərin keçirilməsinə dair münasibəti tənzimləyir"],a:3},
+  {n:178,q:"Konstitusiya hüququ hansı ictimai münasibətləri nizama salır?",o:["Ayrı-ayrı şəxslər arasında yaranan mübahisəli münasibətləri","İctimai təşkilatlar arasında yaranan münasibətləri","Yalnız dövlətin öz orqanları arasında yaranan münasibətləri","Yalnız insanlar arasında yaranan münasibətləri","Dövlət, cəmiyyət və şəxsiyyət arasındakı münasibətləri"],a:4},
+  {n:179,q:"Konstitusiya nədir?",o:["Əsas qanun aktı","Əsas qanunqüvvəli akt","Dövlətin əsas qanunu","Qanunverici orqan","Hakimiyyətin mənbəyi"],a:2},
+  {n:180,q:"Azərbaycanda hakimiyyətin mənbəyi kimdir?",o:["Qanunlar","Prezident","Nazirlər kabineti","Azərbaycan xalqı","Qanunqüvvəli aktlar"],a:3},
+  {n:181,q:"Konstitusiyanın legitimliyi özündə hansı əlamətləri birləşdirir?",o:["Konstitusiyanın xalq tərəfindən seçilmiş ali nümayəndəli orqan tərəfindən qəbul edilməsi, ümumxalq səsverməsi, xüsusi təsis yığıncağı tərəfindən qəbul edilməsi","Konstitusiyanın rəsmi orqanlarda dərc edilməsi","Konstitusiyanın notarial qaydada təsdiq edilməsi","Konstitusiyanın məhkəmə qərarı ilə təsdiq edilməsi","Konstitusiyanın başqa dövlətlər tərəfindən bəyənilməsi"],a:0},
+  {n:182,q:"Dövlətin xüsusiyyəti hesab olunmur:",o:["İctimai hakimiyyətin mövcudluğu","Suverenlik","Əhalinin tayfalara bölünməsi","Ərazi bölgüsü","Vergilər sistemi"],a:2},
+  {n:183,q:"Konstitusiya nəzarətinin mahiyyəti nədir?",o:["Konstitusiya məhkəməsi tərəfindən məhkəmələrin yoxlanması","Hüquq mühafizə orqanlarının yoxlanılması","Bütün qanun və qanunqüvvəli aktların konstitusiyaya uyğunluğuna nəzarət","Qanunverici orqanın yoxlanması","Nazirlər kabinetinin yoxlanması"],a:2},
+  {n:184,q:"AR vitse-prezidentlərinin toxunulmazlığı nəyi ifadə edir?",o:["Axtarışa məruz qala bilməz","Bütün cavablar düzdür","Barəsində məhkəmə qaydasında inzibati tənbeh tədbirləri tətbiq edilə bilməz","Cinayət məsuliyyətinə cəlb edilə bilməz","Şəxsi müayinə edilə bilməz"],a:1},
+  {n:185,q:"Yerli özünüidarəetməni kimlər həyata keçirir?",o:["Bələdiyyələr","Naxçıvan Muxtar Respublikasının yerli icra hakimiyyəti orqanları","AR Milli Məclisinin deputatları","Nazirliklər","Yerli icra hakimiyyəti orqanları"],a:0},
+  {n:186,q:"AR-da icra hakimiyyətinin başçısı kimdir?",o:["Prezident","Hökumət","Birinci vitse-prezident","Baş nazir","Xalq"],a:0},
+  {n:187,q:"İcra hakimiyyətinin daşıyıcısı kimi Prezidentin hüququ hansıdır?",o:["Konstitusiyaya dəyişiklik etmək","Dövlət sərhədlərini dəyişdirmək","Hökumətin səlahiyyətinə xitam vermək","İstədiyi vaxt referendum keçirmək","Vaxtından əvvəl parlamenti buraxmaq"],a:2},
+  {n:188,q:"Cinayət tərkibi:",o:["Obyekt, obyektiv cəhət, predmet","Obyekt, obyektiv cəhət, subyekt, predmet","Obyektiv və subyektiv əlamətlər","Cinayətkar hərəkət və cinayətkar hərəkətsizlik"],a:2},
+  {n:189,q:"Hüquq münasibətlərinin obyektlərinə aid edilmir?",o:["İnsan həyatı, sağlamlıq, azadlıq","Gediş üsulu","Şəxsi münasibətlər","Hərəkətlər","Əşyalar"],a:1},
+  {n:190,q:"Hansı xüsusiyyət hüquq pozuntusunun subyektiv cəhətini əks etdirir?",o:["Təqsir","İctimai təhlükəli nəticə","Cinayətin baş verdiyi yer","İctimai təhlükəli əməl","Məqsəd"],a:0},
+  {n:191,q:"Ərazilər dəyişərkən, bir dövlətdən digərinə keçərkən həmin ərazidə yaşayan əhalinin vətəndaşlığının müəyyən olunması necə adlanır?",o:["Naturalizasiya","Reinteqrasiya","Transfert","Filiasiya","Optasiya"],a:2},
+  {n:192,q:"Şəxs müəyyən səbəbdən öz vətəndaşlığını itirib, sonra bərpa etmək istəyərsə, bu necə adlanır?",o:["Optasiya","Filiasiya","Naturalizasiya","Transfert","Reinteqrasiya"],a:4},
+  {n:193,q:"Əmək müqaviləsinə xitam verilməsinin əlavə şərtləri hansılardır?",o:["Müəssisənin mülkiyyətçisi dəyişdikdə, işçi təqaüdə çıxdıqda, vəfat etdikdə","Əmək şəraitinin şərtləri dəyişdikdə, işçi vəfat etdikdə","İşçi təqaüdə çıxdıqda, yeni yaşayış yerinə köçdükdə, təhsil müəssisəsinə daxil olduqda","Müəssisə ləğv edildikdə","Müqavilənin müddəti bitdikdə, yeni yaşayış yerinə köçdükdə, təqaüdə çıxdıqda"],a:2},
+  {n:194,q:"Pul və əmlak tələbləri ilə bağlı işçi hüququnun pozulduğunu aşkar etdiyi gündən nə qədər müddətə məhkəməyə müraciət edə bilər?",o:["1 ay ərzində","15 gün ərzində","2 ay ərzində","3 ay ərzində","1 il ərzində"],a:4},
+  // ── 254-281 ──
+  {n:254,q:"BOKT-nin lisenziyası həmin hallarda Mərkəzi Bank tərəfindən ləğv edilə bilər?",o:["Hamısı","Pozuntuların aradan qaldırılması barədə Mərkəzi Bankın göstərişlərinə əməl etmədikdə","Lisenziya almaq üçün yanlış məlumatların verildiyi müəyyən edildikdə","BOKT lisenziya qüvvəyə mindikdən 12 ay ərzində fəaliyyətə başlamadıqda"],a:0},
+  {n:255,q:"Girov əmanəti qəbul etmək üçün BOKT-nin necə lisenziyası olmalıdır?",o:["Xüsusi icazə olmalıdır","Qanunun bu barədə heç bir göstərişi yoxdur","Sadə lisenziya","Lisenziya olmamalıdır"],a:0},
+  {n:256,q:"BOKT hansı fəaliyyət növlərini həyata keçirə bilər?",o:["Borc öhdəliklərinin alqı-satqısı (faktorinq, forfeytinq)","Veksellərin uçotu","Hamısı","Lizinq"],a:2},
+  {n:257,q:"BOKT hansı növləri var?",o:["Girov əmanəti qəbul etmək hüququ olan və belə hüququ olmayan kredit təşkilatları","Yalnız valyuta verən və sadə kredit təşkilatları","Dövlət","Girov əmanəti qəbul etmək hüququ olmayan və sadə kredit təşkilatları"],a:0},
+  {n:258,q:"BOKT dövlətin öhdəliklərinə görə ...",o:["Məsuliyyət daşımır","Öz mülahizəsinə görə qərar verir","Məsuliyyət daşıyır","Cavabdehdir"],a:0},
+  {n:259,q:"BOKT-ın açıqlaması hansıdır?",o:["Bank olmayan koperativ təşkilat","Bank olmayan korporativ təsərrüfat","Bank olmayan kommersiya təşkilatları","Bank olmayan kredit təşkilatları"],a:3},
+  {n:260,q:"Bank səhmdarlarının ümumi yığıncağının müstəsna səlahiyyətlərinə hansılar aiddir?",o:["Bankın reqlamentini qəbul etmək","Bankın faiz dərəcələri, aktivlərinin yerləşdirilməsi barəsində siyasətini müəyyənləşdirmək","Hamısı","Bankın nizamnaməsini qəbul etmək"],a:2},
+  {n:261,q:"Vergi dərəcələrinin hansı növləri var?",o:["Proqressiv vergi dərəcəsi","Sabit pul məbləğində vergi dərəcələri və faiz dərəcələri","Proporsional vergi dərəcəsi","Rüsum dərəcəsi və cərimə məbləği"],a:1},
+  {n:262,q:"Verginin ödənilməsini şərtləndirən hüquqi fakt necə adlanır?",o:["Vergi növü","Vergi obyekti","Vergi predmeti","Vergi mənbəyi"],a:1},
+  {n:263,q:"Müəyyən olunmuş müddətdə təyinatına görə istifadə olunmayan subvensiya ilə bağlı nəticə necə olur?",o:["Subvensiya yeni hallar yarananadək qalır","Subvensiya mübahisəsiz olaraq geri qaytarılmalıdır","Qanunda bu barədə göstəriş yoxdur","Heç bir dəyişiklik olmur"],a:1},
+  {n:264,q:"Vətəndaşlara dəymiş ziyanın ödənilməsi və başqa məqsədlər üçün ayrılan dövlət yardımı kimi əməliyyat necə adlanır?",o:["Subsidiya","Subvensiya","Dotasiya","Vergi"],a:2},
+  {n:265,q:"Bir ölkədən başqa bir ölkəyə qızıl və ya xarici valyutanın köçürülməsi necə adlanır?",o:["Subsidiya","Transfer","Subvensiya","Vergi"],a:1},
+  {n:266,q:"Aşağı büdcələrə maddi kömək üçün yuxarı büdcədən əvəzsiz ayrılan büdcə vəsaitlərinə nə deyilir?",o:["Transfer","Subvensiya","Vergi","Subsidiya"],a:3},
+  {n:267,q:"Yuxarı büdcədən aşağı büdcəyə müəyyən məqsədi nəzərdə tutulmayan büdcə ehtiyatı necə adlanır?",o:["Subvensiya","Vergi","Subsidiya","Dotasiya"],a:3},
+  {n:268,q:"\"Valyuta tənzimi haqqında\" qanuna görə fiziki şəxslər necə adlanır?",o:["Beynəlxalq ödəyici","Rezident və qeyri-rezident","Hüquqi şəxs və ya təsərrüfat subyekti","Xarici vətəndaş və vətəndaş"],a:1},
+  {n:269,q:"Xarici hüquqi şəxslər respublika bank qanunvericiliyinə əsasən nə etməlidirlər?",o:["Dövlət orqanlarında vəzifə tuta bilərlər","Maliyyə prosesində iştirak etməlidirlər","Büdcənin təsdiqində iştirak etməlidirlər","Bank intizamına riayət etməlidirlər"],a:3},
+  {n:270,q:"Maliyyə hüquq münasibətlərinin subyektləri kimlərdir?",o:["Hamısı","Vətəndaşlar","Dövlət","Təsərrüfatlar"],a:0},
+  {n:271,q:"Adi büdcələrin düzgün anlayışını göstərin.",o:["İqtisadiyyatın nisbətən sabit və normal inkişafı şəraitində qəbul olunan büdcələr","İqtisadiyyatın tam sabit inkişafı şəraitində qəbul olunan büdcələr","Bu cür büdcə yalnız ayrı-ayrı inzibati ərazi vahidləri səviyyəsində qəbul oluna bilər","Sadə inzibati ərazi quruluşuna malik ölkələrə aid büdcə"],a:0},
+  {n:272,q:"Büdcə kəsirinin düzgün anlayışını göstərin.",o:["Büdcə gəlirləri və büdcə kəsiri gəlirlə təmin olunmayan məbləğdir","Büdcə kəsiri riyazi əmsaldır","Büdcə xərclərinin gəlirləri üstələməsi baş verir və büdcə kəsiri gəlirlə təmin olunmayan məbləğdir","Büdcə kəsiri dövlət büdcəsi xərclərinin gəlirlə təmin olunmayan məbləğdir"],a:2},
+  {n:273,q:"Dövlət büdcəsi nədir?",o:["AR-nın müvafiq dövlət hakimiyyəti orqanları vasitəsi ilə lazım olan pul vəsaitinin yığılması və istifadə olunması üçün əsas maliyyə sənədi","Universal maliyyə plan aktıdır","İqtisad kateqoriya kimi büdcə fondlarının yaradılması ilə əlaqədar yaranan iqtisadi münasibətlərdir","Büdcə xərclərinin gəlirləri üstələməsi baş verir"],a:0},
+  {n:274,q:"\"Finantino\" sözünün düzgün açıqlamasını göstərin.",o:["Ödəmə","Qızıl","Maliyyə","Gəlir"],a:0},
+  {n:275,q:"Maliyyə necə kateqoriyadır?",o:["Siyasi","İqtisadi","Maliyyə","Sosial"],a:1},
+  {n:276,q:"AR Konstitusiyasının 109 maddəsinin 7-ci bəndinə nə aiddir?",o:["Gömrük komitəsi AR büdcəsinin təsdiq edilməsi və icrasına nəzarət edir","Dövlət Vergi Agentliyi AR büdcəsinin təsdiq edilməsinə nəzarət edir","Prezident AR dövlət büdcəsini Milli Məclisin təsdiqinə təqdim edir","Prezident büdcədə icra hakimiyyəti üçün nəzərdə tutulmuş xərclər çərçivəsində mərkəzi və yerli icra hakimiyyəti orqanları yaradır"],a:3},
+  {n:277,q:"İctimai münasibətləri tənzim edən maliyyə hüquq institutları hansılardır?",o:["Vergi münasibətləri institutu","Müəssisələrin pul vəsaiti fondlarının yaradılması institutu","Büdcə, büdcələrin təşkili institutu","Dövlət gəliri və dövlət xərcləri institutu"],a:3},
+  {n:278,q:"Maliyyə fəaliyyəti iqtisadi istiqamətinə görə hansı qruplara bölünür?",o:["İctimai","Maliyyə və qeyri maliyyə xarakterli","Hüquqi","İqtisadi"],a:1},
+  {n:279,q:"Maliyyə fəaliyyətinin funksiyaları hansılardır?",o:["Dövlətin maliyyə resurslarının bölüşdürülməsi","Maliyyə ehtiyatlarından istifadə olunma","Pul vəsaitləri fondunun səfərbər olması","Hamısı"],a:3},
+  {n:280,q:"\"Mərkəzi bank haqqında\" qanun nə vaxt qəbul edilib?",o:["10 iyul 1996-cı il","10 avqust 1996-cı il","10 dekabr 2004-cü il","10 iyun 2001-ci il"],a:2},
+  {n:281,q:"Maddi məzmununa görə maliyyəni necə ifadə etmək olar?",o:["Müəssisə, idarə və təşkilatların pul vəsaiti fondu","Dövlətin pul vəsaiti","Dövlətin, onun inzibati ərazi vahidliklərinin, habelə müəssisə, idarə və təşkilatların pul vəsaiti fondu","Maliyyə fondu"],a:2},
+  // ── 334-342 ──
+  {n:334,q:"Korrupsiyaya qarşı Beynəlxalq Mübarizə Günü ilk dəfə hansı tarixdən qeyd olunur?",o:["01 yanvar 2004-cü ildən","02 fevral 2010-cu ildən","10 dekabr 2004-cü ildən","09 dekabr 2004-cü ildən","09 dekabr 2005-ci ildən"],a:3},
+  {n:335,q:"BMT-nin Korrupsiya əleyhinə Konvensiyası AR tərəfindən nə vaxt təsdiq edilmişdir?",o:["01 yanvar 2002-ci il","15 yanvar 2005-ci il","27 fevral 2004-cü il","31 oktyabr 2004-cü il","31 oktyabr 2003-cü il"],a:2},
+  {n:336,q:"AR-da \"Korrupsiyaya qarşı mübarizə haqqında\" Qanunu nə vaxt qəbul olunmuş?",o:["15 mart 2004-cü ildə qəbul, 15 fevral 2005-ci ildə qüvvəyə minmiş","13 yanvar 2005-ci ildə qəbul, 02 yanvar 2005-ci ildə qüvvəyə minmiş","13 fevral 2004-cü ildə qəbul, 10 yanvar 2005-ci ildə qüvvəyə minmiş","15 mart 2004-cü ildə qəbul, 13 yanvar 2005-ci ildə qüvvəyə minmiş","13 yanvar 2004-cü ildə qəbul, 01 yanvar 2005-ci ildə qüvvəyə minmiş"],a:4},
+  {n:337,q:"Korrupsiya hansı nəticələrə gətirib çıxarır?",o:["Səhiyyənin, xidmət sahələrinin səviyyəsinin aşağı düşməsi","Sosial problemlərin artması və mənəvi-etik normaların zəifləməsi","Bütün cavablar düzdür","Dövlət təməllərinin zəifləməsi və iqtisadi itkilər","Ekoloji mühitin pisləşməsi"],a:2},
+  {n:338,q:"Korrupsiyaya Qarşı Mübarizə İdarəsi AR-da hansı dövlət orqanının yanında fəaliyyət göstərir?",o:["AR-nın Vergilər Nazirliyi yanında","AR-nın Müdafiə Nazirliyi yanında","AR-nın Milli Məclisi yanında","AR-nın Daxili İşlər Nazirliyi yanında","AR-nın Baş Prokuroru yanında"],a:4},
+  {n:339,q:"AR-da korrupsiyaya qarşı mübarizə hansı orqanlar tərəfindən həyata keçirilir?",o:["AR-nın Korrupsiyaya qarşı Mübarizə Komissiyası","Bütün cavablar düzdür","Korrupsiyaya qarşı Mübarizə Fondu","AR-nın Baş Prokuroru yanında Korrupsiyaya qarşı mübarizə idarəsi","Bütün dövlət orqanları, vəzifəli şəxslər"],a:1},
+  {n:340,q:"Korrupsiyaya qarşı Mübarizə Fondu nə vaxt təsis edilmişdir?",o:["15 yanvar 2005-ci il","31 oktyabr 2003-cü il","31 oktyabr 2004-cü il","01 yanvar 2002-ci il","01 fevral 2004-cü il"],a:4},
+  {n:341,q:"AR-nın Korrupsiyaya qarşı Mübarizə Komissiyası neçə üzvdən ibarətdir?",o:["15 üzvdən","5 üzvdən","10 üzvdən","25 üzvdən"],a:0},
+  {n:342,q:"AR-nın Baş Prokuroru yanında Korrupsiyaya qarşı mübarizə idarəsinin tərkibindəki şöbələr:",o:["Vergi istintaqı şöbəsi","İbtidai istintaq şöbəsi","Analitik informasiya şöbəsi, istintaq şöbəsi, daxili təhqiqatlar şöbəsi","Kriminalistika şöbəsi","Maliyyə istintaqı şöbəsi"],a:2},
+  // ── 344-346 ──
+  {n:344,q:"Əqdlər hansı formada bağlana bilər?",o:["Mürəkkəb və ya sadə","Yazılı və ya sadə","Şifahi və ya mürəkkəb","Yalnız yazılı","Şifahi və ya yazılı"],a:4},
+  {n:345,q:"İddia müddəti buraxılıbsa, hüququn müdafiəsi haqqında tələbi məhkəmə baxmağa qəbul etməlidirmi?",o:["Ümumi iddia müddəti istisna olmaqla qəbul edilməlidir","Qəbul etməli deyil","Müddət üzürlü səbəbdən ötürüldükdə qəbul edilə bilər","Qəbul etməlidir","Ümumi iddia müddəti istisna olmaqla qəbul etməməlidir"],a:3},
+  {n:346,q:"Əqd nədir?",o:["Mülki hüquq münasibətlərinin əmələ gəlməsinə, dəyişməsinə yönəldilmiş birtərəfli iradə ifadəsidir","Mülki hüquq münasibətlərinin əmələ gəlməsinə və xitamına yönəldilmiş ikitərəfli iradə ifadəsidir","Mülki hüquq münasibətlərinin əmələ gəlməsinə, dəyişməsinə, xitamına yönəldilmiş birtərəfli və ya ikitərəfli iradə ifadəsidir","Mülki hüquq münasibətlərinin əmələ gəlməsinə, dəyişməsinə, xitamına yönəldilmiş birtərəfli, ikitərəfli və ya çoxtərəfli iradə ifadəsidir","İkitərəfli və ya çoxtərəfli iradə ifadəsidir"],a:3},
+  // ── 353-359 ──
+  {n:353,q:"Mülki hüquq qabiliyyəti hansı andan yaranır?",o:["18 yaşa çatdıqda","14 yaşına çatdıqda","16 yaşa çatdıqda","Doğulduğu andan","23 yaşa çatdıqda"],a:3},
+  {n:354,q:"Fiziki şəxsin Mülki hüquq qabiliyyəti nədir?",o:["İnsanın mülki hüquqlarının olması və mülki hüquq vəzifələri daşıması","Şəxsin öz hərəkətləri ilə mülki hüquqlar əldə etməsi","İnsanın mülki hüquqlarının olması","İnsanın mülki hüquq vəzifələri olması","Şəxsin öz hərəkətləri ilə mülki vəzifələr yaratması"],a:0},
+  {n:355,q:"Maddi məzmununa görə mülki hüquq münasibətləri hansı növlərə bölünür?",o:["Öhdəlik hüquq münasibətlərinə, təşkilati hüquq münasibətlərinə","Mütləq hüquq münasibətlərinə","Nisbi hüquq münasibətlərinə","Əmlak münasibətlərinə və şəxsi qeyri-əmlak münasibətlərinə"],a:3},
+  {n:356,q:"Qanunun analogiyası nədir?",o:["İşgüzar adətlər əsasında münasibətlərin nizama salınması","Mülki qanunvericilik prinsiplərinin tətbiqi","Tərəflərin razılaşması ilə münasibətlərin həll olunması","Oxşar münasibətləri tənzimləyən mülki qanunvericilik normalarının tətbiqi","Qanunvericilik, tərəflərin razılaşması olmadıqda münasibətlərin oxşar normalarla nizamlanması"],a:4},
+  {n:357,q:"Mülki hüquq hansı münasibətləri tənzim edir?",o:["Bir tərəfin digər tərəfə tabeliyinə əsaslanan əmlak münasibətlərini","Vergidən yayınma nəticəsində vurulmuş zərərin ödənilməsinə dair münasibətləri","İşçi ilə işəgötürən arasında əmlak münasibətlərini","Tərəflərin hüquq bərabərliyinə əsaslanan əmlak və şəxsi qeyri-əmlak münasibətlərini","Bankla müştəri arasında kredit münasibətlərini"],a:3},
+  {n:358,q:"Müqavilələrdən irəli gələn tələblər üzrə iddia müddəti nə qədərdir?",o:["5 il","6 il","3 il","10 il","2 il"],a:2},
+  {n:359,q:"Hüquqi şəxsin xitamı qaydaları:",o:["Sərəncam, təsviyyə","İcazə, sərəncam","Təsviyyə, yenidən təşkiletmə","Ləğvetmə","Ləğvetmə, təsviyyə"],a:2},
+  // ── 371-374 ──
+  {n:371,q:"Hər hansı fiziki şəxsi digər fiziki şəxsdən fərqləndirən əlamət hansıdır?",o:["Hüquq qabiliyyəti","Mülki hüquqları","Fəaliyyət qabiliyyəti","Heç bir fərq yoxdur","Ad hüququ"],a:4},
+  {n:372,q:"AR-nın mülki hüququnun mənbəyi sayılmır:",o:["Beynəlxalq müqavilələr","Qanunlardan aşağı qüvvəli normativ aktlar","İşgüzar adətlər","Məhkəmə presedentləri","Qanunlar"],a:3},
+  {n:373,q:"Hüquqi nəticəyə səbəb olan hüquqi faktlar hansılardır?",o:["Xitamverici hüquqi faktlar","Hüquq dəyişən hüquqi faktlar","Hüquq yaradan hüquqi faktlar","Hüquq yaradan, hüquq dəyişən hüquqi faktlar, xitamverici hüquqi faktlar","Hüquq pozan hüquqi faktlar"],a:3},
+  {n:374,q:"Ümumi iddia müddəti nə qədərdir?",o:["15 il","10 il","6 il","3 il","30 il"],a:1},
+  // ── 379-381 ──
+  {n:379,q:"Hüquqi şəxsin olduğu yer hara sayılır?",o:["Hüquqi şəxsin daşınmaz əmlakının yerləşdiyi yer","Hüquqi şəxsin əmlakının əksəriyyətinin yerləşdiyi yer","Heç biri","Daimi fəaliyyət göstərən orqanın yerləşdiyi yer","Hüquqi şəxsin tərəfdaşlarının daha çox olduğu yer"],a:3},
+  {n:380,q:"Fəaliyyət qabiliyyəti nədir?",o:["Hüquqi şəxslərin öz hərəkətləri ilə tam həcmdə hüquqlar əldə etmək qabiliyyəti","Subyektin qanunvericiliklə müəyyən edilmiş vəzifələrə malik olmaq qabiliyyəti","Hüquqi şəxslərin qanunvericiliklə müəyyən edilmiş hüquqlara malik olmaq qabiliyyəti","Subyektin öz hərəkətləri ilə tam həcmdə hüquqlar əldə etmək və özü üçün vəzifələr yaratmaq qabiliyyəti","Subyektin öz hərəkətləri ilə tam həcmdə vəzifələr əldə etmək qabiliyyəti"],a:3},
+  {n:381,q:"Hüquq qabiliyyəti nədir?",o:["Hüquqi şəxslərin qanunvericiliklə müəyyən edilmiş hüquqlara malik olmaq qabiliyyəti","Subyektin öz hərəkətləri ilə tam həcmdə vəzifələr əldə etmək qabiliyyəti","Subyektin qanunvericiliklə müəyyən edilmiş vəzifələrə malik olmaq qabiliyyəti","Subyektin qanunvericiliklə müəyyən edilmiş hüquqlara malik olmaq və hüquqi vəzifələr daşımaq qabiliyyəti","Subyektin öz hərəkətləri ilə tam həcmdə hüquqlar əldə etmək qabiliyyəti"],a:3},
+  // ── 390-394 ──
+  {n:390,q:"AR-nın Mülki qanunvericiliyi məkana görə ... qüvvədədir.",o:["Naxçıvan Muxtar Respublikasının ərazisində","Bakı şəhərində","Azərbaycan Respublikasının bütün ərazisində","Bütün dünyada"],a:2},
+  {n:391,q:"Fiziki şəxslərə aiddir:",o:["AR vətəndaşları, AR-da daimi yaşayan əcnəbilər, vətəndaşlığı olmayan şəxslər","Prezident","Bələdiyyələr","Nazirlər kabineti","Xarici vətəndaşlar"],a:0},
+  {n:392,q:"Hüquqi şəxslərə aiddir:",o:["Müəssisələr, təşkilatlar, idarələr","Prezident","Nazirlər kabineti","Bələdiyyələr","Vətəndaşlar"],a:0},
+  {n:393,q:"Tam fəaliyyət qabiliyyəti hansı yaşda başlayır?",o:["14 yaş","18 yaş","25 yaş","21 yaş","20 yaş"],a:1},
+  {n:394,q:"Mülki hüquq münasibətlərinin subyektləri kimdir?",o:["Vətəndaşlığı olmayan şəxslər","Bələdiyyələr","Xarici vətəndaşlar","Prezident və nazirlər kabineti","Fiziki şəxslər, hüquqi şəxslər, dövlət, yerli özünüidarə orqanları"],a:4},
+  // ── 520-523 ──
+  {n:520,q:"Mülkiyyət hüququnun əldə edilməsinin hansı üsulları vardır?",o:["Törəmə üsul","İlkin və törəmə üsul","Məhkəmə qaydasında əldə edilməsi","Müqavilə üzrə mülkiyyət hüququnun əldə edilməsi","İlkin üsul"],a:1},
+  {n:521,q:"Uydurma əqd:",o:["Qeyri-ciddi iradə ifadə edilmiş əqddir","Başqa əqdi pərdələmək məqsədilə bağlanan əqdlər","Mövcud olmayan uydurma predmet üzrə bağlanan əqddir","Ona uyğun hüquqi nəticələr yaratmaq niyyəti olmadan yalnız görünüş üçün bağlanmış əqddir","Əslində mövcud olmayan əqddir"],a:3},
+  {n:522,q:"Qiymətli kağızların növləri:",o:["Təqdimedici, adlı, adsız","Adlı, orderli","Adlı, adsız","Adlı, adsız, orderli","Təqdimedici, adsız, orderli"],a:3},
+  {n:523,q:"Yalan əqd:",o:["Ona uyğun hüquqi nəticələr yaratmaq niyyəti olmadan yalnız görünüş üçün bağlanmış əqddir","Başqa əqdi pərdələmək məqsədi ilə bağlanan əqddir","Əslində mövcud olmayan əqddir","Mövcud olmayan uydurma predmet üzrə bağlanan əqddir","Tərəflərin vicdanlılıq prinsipi rəhbər tutaraq bağlanan əqd"],a:1},
+  // ── 535-537 ──
+  {n:535,q:"Qanunvericiliyin nəzərdə tutduğu əqdlər:",o:["Ancaq şifahi əqdlər","Şifahi əqdlər, sadə yazılı formada əqdlər, notarial qaydada təsdiqlənmiş əqdlər","Müvafiq icra hakimiyyəti orqanında qeydə alınmış əqdlər","Ancaq sadə yazılı formada əqdlər","Ancaq notarial qaydada təsdiq olunmuş əqdlər"],a:1},
+  {n:536,q:"Fiziki və hüquqi şəxslərin mülki hüquq münasibətlərini tənzim edən normalar toplusu mülki hüquqi tənzimetmənin ....... əks etdirir:",o:["Metodunu","Obyektlərini","Funksiyalarını","Subyektlərini","Prinsiplərini"],a:0},
+  {n:537,q:"Əvəzsiz müqavilələrə hansı aiddir?",o:["Alqı-satqı","Bağışlanma","Ssuda","Dəyişmə","Saxlanma"],a:1},
+  // ── 545-546 ──
+  {n:545,q:"Hansı sənəd hüquqi şəxsin təsis sənədidir?",o:["Hüquqi şəxsin təsisçilərinin yığıncağının protokolu","Dövlət rüsumu haqqında sənəd","Hüquqi şəxsin təsisçilərinin təsdiq etdiyi nizamnamə","Lisenziya haqqında sənəd","Təsisçilər arasında bağlanmış müqavilə"],a:2},
+  {n:546,q:"Hüquqi şəxsin hüquq qabiliyyətinə nə vaxt xitam verilir?",o:["Hüquqi şəxsin hüquqlarının məhdudlaşdırıldığı andan","Kreditorlara bildiriş göndərildiyi andan","Hüquqi şəxsin ləğvi başa çatdığı andan","Ləğvetmə komissiyasının yaradıldığı andan","Ləğvetmə komissiyasının qərarı qəbul etdiyi andan"],a:2},
+  // ── 559-669 ──
+  {n:559,q:"10 illik iddia müddəti hansı hallara şamil olunur?",o:["Müqavilə tələbləri üzrə iddia müddətinə","Daşınar əmlakla bağlı iddia müddətinə","Daşınmaz əmlakla bağlı iddia müddətinə","Ümumi iddia müddətinə","Heç bir halda"],a:3},
+  {n:560,q:"3 illik iddia müddəti hansı hallara şamil olunur?",o:["Daşınmaz əmlakla bağlı iddia müddətinə","Daşınar əmlakla bağlı iddia müddətinə","Ümumi iddia müddətinə","Heç bir halda","Müqavilə tələbləri üzrə iddia müddətinə"],a:4},
+  {n:561,q:"Bir fiziki şəxs əqd bağlayarkən başqa şəxs həmin əqdi imzalaya bilərmi?",o:["Şəxs fəaliyyət qabiliyyətsizdirsə imzalaya bilər","Heç bir halda imzalaya bilməz","Bütün hallarda imzalaya bilər","Savadsızdırsa başqa şəxs imzalaya bilər","Bədən qüsuruna, xəstəliyinə, savadsızlığına görə imzalaya bilmirsə başqa şəxs imzalaya bilər"],a:4},
+  {n:562,q:"Azərbaycan Respublikasında ədalət mühakiməsi hansı orqan tərəfindən həyata keçirilir?",o:["Münsiflər məhkəməsi","Avropa insan hüquqları məhkəməsi","Məhkəmələr","Ombudsman","Prokurorluq"],a:2},
+  {n:563,q:"Hansı prinsip ədalət mühakiməsinin konstitusiya prinsiplərinə aid deyildir?",o:["Çəkişmə","İşlərə açıq sürətdə baxılması","Hakimlərin müstəqilliyi","Obyektiv həqiqət prinsipi","Vətəndaşların qanun və məhkəmə qarşısında bərabərliyi"],a:3},
+  {n:564,q:"Dövlət hakimiyyəti nəyin əsasında həyata keçirilir?",o:["Prezidentin fərman və sərəncamlarının","Məhkəmə presedentinin","Nazirlər Kabinetinin qərarlarının","Konstitusiyanın","Qanunvericilik aktlarının"],a:3},
+  {n:565,q:"Şəxsi həyatın, gizli yazışmaların toxunulmazlığı hüququ hansı kateqoriyaya aiddir?",o:["Mənzil toxunulmazlığı hüququ","Sosial təminat hüququ","Mədəniyyət hüququ","Şəxsi toxunulmazlıq","Nigah hüququ"],a:3},
+  {n:566,q:"Qanunların Konstitusiyaya uyğunluğunu hansı dövlət orqanı həll edir?",o:["AR Nazirlər Kabineti","AR Prezidenti","AR Prokurorluğu","AR Konstitusiya Məhkəməsi","AR Ali Məhkəməsi"],a:3},
+  {n:567,q:"AR Milli Məclisi neçə deputatdan ibarətdir?",o:["120 deputat","100 deputat","125 deputat","130 deputat","150 deputat"],a:2},
+  {n:568,q:"Naxçıvan Muxtar Respublikası Ali Məclisinin səlahiyyət müddəti neçə ildir?",o:["4 il","3 il","5 il","1 il","2 il"],a:2},
+  {n:569,q:"Naxçıvan Muxtar Respublikası Ali Məclisi neçə nəfərdən ibarətdir?",o:["50 deputat","125 deputat","75 deputat","45 deputat","100 deputat"],a:3},
+  {n:570,q:"Naxçıvan Muxtar Respublikası qanunvericilik hakimiyyətini hansı dövlət orqanı həyata keçirir?",o:["NMR-nin Ali Məhkəməsi","AR-nın Prezidenti","AR-nın Nazirlər Kabineti","NMR-nin Nazirlər Kabineti","NMR-nin Ali Məclisi"],a:4},
+  {n:571,q:"Vətəndaşlıq məsələlərinin həll edilməsi kimin səlahiyyətindədir?",o:["AR Prezidentinin","AR Milli Məclisinin sədrinin","AR Konstitusiya Məhkəməsinin","Baş Nazirin","Xarici işlər nazirliyinin"],a:0},
+  {n:572,q:"Qanunların eyni cür icrasına nəzarət edən dövlət orqanı hansıdır?",o:["AR Nazirlər Kabineti","Məhkəmə orqanları","AR Milli Məclisi","AR Konstitusiya Məhkəməsi","Prokurorluq orqanları"],a:4},
+  {n:573,q:"Siyasi sığınacaq verilməsi məsələlərini həll etmək səlahiyyəti kimin?",o:["AR Baş Naziri","Xarici İşlər Naziri","AR Milli Məclisinin sədri","AR Baş Prokuroru","AR Prezidenti"],a:4},
+  {n:574,q:"AR dövlət büdcəsinin layihəsini kim hazırlayıb Prezidentə təqdim edir?",o:["AR Mərkəzi Bankının idarə heyyəti","İqtisadi inkişaf naziri","AR Maliyyə Naziri","AR Nazirlər Kabineti","AR Milli Məclisi"],a:3},
+  {n:575,q:"Əfv etmək kimin səlahiyyətindədir?",o:["AR Milli Məclisi","AR Baş Naziri","AR Konstitusiya Məhkəməsinin sədri","AR Ali Məhkəməsinin sədri","AR Prezidenti"],a:4},
+  {n:576,q:"Konstitusiyanın hansı funksiyaları mövcuddur?",o:["İdarəçiliyi həyata keçirmə ilə bağlı funksiyası","Yalnız hüquqi tərbiyə vermə və siyasi funksiya","Cəriməni müəyyən etmə funksiyaları","Hüquqi, sosial, siyasi və tərbiyəvi funksiyalar","Yalnız hüquqi məsuliyyətdən azad etmə funksiyası"],a:3},
+  {n:577,q:"Azərbaycan Respublikası idarəetmə formasına görə hansı növə aiddir?",o:["İdarəçiliyin qarışıq formasıdır","Yarımprezidentli respublikadır","Prezidentli respublikadır","Parlamentli respublikadır","Yarımparlamentli respublikadır"],a:2},
+  {n:578,q:"Analoji işlərdə ümumməcburi olan məhkəmə qərarını əks etdirən hüquq forması necə adlanır?",o:["Hüquqi adət","Normativ müqavilə","Qanunvericilik","Məhkəmə presedenti","Mononorma"],a:3},
+  {n:579,q:"Məhkəmə presedenti əsasən hansı hüquq sistemində tətbiq olunur?",o:["Kontinental və qarışıq hüquq sistemində","Qarışıq hüquq sistemində","Kontinental hüquq sistemində","Anqlo-sakson hüquq sistemində","Roman-german hüquq sistemində"],a:3},
+  {n:580,q:"Hüquqi tənzimetmənin imperativ metodu nəyi müəyyən edir?",o:["Hüquq subyektlərinə daha məqsədyönlü davranmaq imkanı verən vasitələr","Hüquq normalarındakı göstərişlərdən kənara çıxmağa yol verməyən vasitələr","Hüquq subyektlərinə alternativ davranmaq imkanı verən vasitələr","Münasibətlərin qanun çərçivəsində tənzimlənməsi üçün vasitələr","Bütün cavablar düzdür"],a:1},
+  {n:581,q:"Hüquq normasında hüquq pozulmasının nəticəsi nəyi müəyyən edir?",o:["Cəriməni","Dispozisiyanı","Hipotezanı","İnzibati məsuliyyəti","Sanksiyanı"],a:4},
+  {n:582,q:"Anqlo-sakson hüquq sisteminin mənbələri içindəki əsas yer:",o:["Konstitusiya","Normativ hüquqi aktlar","Xüsusi normalar","Qanunlar","Məhkəmə presedenti"],a:4},
+  {n:583,q:"Müasir hüquq ədəbiyyatında dövlətin anlayışı necə verilmişdir?",o:["Vətəndaşların mənəvi və əqli maraqlarının birliyi","Müəyyən məqsəd üçün insanların birliyi","Siyasi və iqtisadi birlik","Sosial qrupun iradə və maraqlarını ifadə edən xüsusi dövlət aparatına malik siyasi hakimiyyətin xüsusi təşkilatı","Bir sinfin digər sinif içərisində hakimiyyəti"],a:3},
+  {n:584,q:"Dövlətin hansı nizamlayıcı funksiyası vardır?",o:["Qanunların qorunması","Ekoloji","Dövlətin xarici hücumlardan müdafiəsi","İqtisadi","Qanunların həyata keçirilməsi"],a:3},
+  {n:585,q:"Dövlətin hansı funksiyası qoruyucu funksiya hesab olunur?",o:["Mədəni-tərbiyəvi","Digər dövlətlərlə əlaqəsi","Təsərrüfat","Sosial","Ekoloji"],a:4},
+  {n:586,q:"Hansı idarəetmə formasında hökumət parlament tərəfindən formalaşır?",o:["Məhdud monarxiya","Parlamentli respublika","Qarışıq respublika","Prezidentli respublika","Dualistik monarxiya"],a:1},
+  {n:587,q:"Hansı əlamət dövlət quruluşu formasını izah edir?",o:["Dövlətin ali hakimiyyət orqanlarının təşkili","Qanunverici, icraedici və nəzarət funksiyalarının məcmusu","Dövlət hakimiyyətinin təşkili metodları","Dövlətin ərazi və ya milli ərazi təşkili","Məhkəmə orqanlarının təşkili"],a:3},
+  {n:588,q:"Konstitusiya nəzarətini hansı orqan həyata keçirir?",o:["AR Baş Prokurorluq orqanları","AR Nazirlər Kabineti sistemi","AR Prezidentinin İcra Aparatı","AR Konstitusiya Məhkəməsi","AR-dakı Ali Məhkəmə orqanları"],a:3},
+  {n:589,q:"Azadlıq hüququ nədir?",o:["Hər kəsin irqindən asılı olmayaraq hüquq və azadlıqlarının bərabərliyi","Hər kəsin siyasi partiya yaratmaq hüququ","Hər kəsin yazışma sirrini saxlamaq hüququ","Qanuni surətdə AR ərazisindəki hər kəsin sərbəst hərəkət edə bilməsi, yaşayış yeri seçə bilməsi","Hər kəsin öz hüquqlarını müdafiə etmək hüququ"],a:3},
+  {n:590,q:"AR vətəndaşlığına daxil olmaq istədikdə hansı şərtə əməl etməlidir?",o:["Azı 7 il AR ərazisində yaşamalıdır","Azı 6 il AR ərazisində yaşamalıdır","Azı 10 il AR ərazisində yaşamalıdır","Azı 3 il AR ərazisində yaşamalıdır","Azı 5 il AR ərazisində yaşamalıdır"],a:4},
+  {n:591,q:"Dövlət formasının əsas elementi hansıdır?",o:["Seçki sistemi","İdarəetmə forması","Partiyalar","Hakimiyyət","İctimai birliklər"],a:1},
+  {n:592,q:"Monarxiyanın respublikadan fərqli cəhəti hansıdır?",o:["Prezident hakimiyyətinin mövcudluğu","Referendumun mövcudluğu","Hökumətin parlament qarşısında məsuliyyəti","Ali hakimiyyətin irsi olması","Hakimiyyətin təşkilinin mənbəyi"],a:3},
+  {n:593,q:"Hansı xüsusiyyət demokratik dövlətə xas deyil?",o:["Dövlət orqanlarının və siyasi partiyaların birləşməsi","Siyasi plüralizm","Hüquq və azadlıqların tanınması","İnsanların hüquq və azadlıqlarının boğulması, dövlətin vətəndaş cəmiyyətinin bütün sferasına müdaxilə etməsi","Dövlət orqanlarının qanuna əsaslanması"],a:3},
+  {n:594,q:"Demokratik rejim hansı xüsusiyyəti ilə seçilir?",o:["Məhkəmə orqanlarının mövcudluğu","Hökumətin hakimiyyətə əsaslanan ordu tərəfindən təşkili","Dövlət nəzarətinin mövcudluğu","İnsanların hüquq və azadlıqlarının boğulması","İnsanların hüquq və azadlıqlarının qorunması"],a:4},
+  {n:595,q:"Konstitusiyanın məkana görə qüvvəsi nədir?",o:["Konstitusiyanın dərc olunduğu məkan","Konstitusiyanın ilk dəfə yarandığı yer","Konstitusiyanın tanındığı ölkələr","Konstitusiyanın hansı ərazidə qüvvədə olması","Konstitusiyanın qəbul edildiyi məkan"],a:3},
+  {n:596,q:"Konstitusiyanın şəxslərə görə qüvvəsi nədir?",o:["Konstitusiyanın şamil edildiyi şəxslər dairəsi","Konstitusiyanı təsdiq edən şəxslər","Konstitusiyaya əlavə edə bilən şəxslər","Konstitusiyanı dəyişdirə bilən şəxslər","Konstitusiyanı qəbul edən şəxslər dairəsi"],a:0},
+  {n:597,q:"Konstitusiyanın zamana görə qüvvəsi nədir?",o:["Konstitusiyanın ilk yaranma tarixi","Konstitusiyanın qeydə alınması","Konstitusiyanın qüvvədə olması müddəti","Konstitusiyanın qəbulu tarixi","Konstitusiyada dəyişikliklər edilmə müddəti"],a:2},
+  {n:598,q:"Konstitusiya hansı subyektlərə aiddir?",o:["Fiziki şəxslərə və dövlətə","Dövlət və onun rəhbərliyi","Yetkinlik yaşına çatanlara","Dövlət, şəxsiyyət, cəmiyyətə","Cəmiyyətdə olan partiyalara"],a:3},
+  {n:599,q:"Dövlətin tərkib elementləri:",o:["Ərazi, əhali, ordu","Dil, ərazi, əhali, ordu","Dil, ərazi, dövlət hakimiyyəti","Ərazi, əhali, dövlət hakimiyyəti","Dil, millət, dövlət başçısı"],a:3},
+  {n:600,q:"AR Silahlı Qüvvələrinin Ali Baş Komandanı kimdir?",o:["Müdafiə Naziri","Milli Təhlükəsizlik Naziri","AR Milli Məclisinin sədri","Baş Qərərgah Rəisi","AR Prezidenti"],a:4},
+  {n:601,q:"AR Konstitusiyasına görə qanunvericilik hakimiyyətini hansı dövlət orqanı həyata keçirir?",o:["Bələdiyyə orqanları","AR Prezidenti","AR Nazirlər Kabineti","AR Konstitusiya Məhkəməsi","AR Milli Məclisi"],a:4},
+  {n:602,q:"AR-nın Prezidenti vaxtından əvvəl vəzifədən getdikdə növbədənkənar seçkilər hansı müddətə keçirilir?",o:["4 ay müddətində","1 ay müddətində","1 həftə müddətində","3 ay müddətində","60 gün müddətində"],a:4},
+  {n:603,q:"Prezidentin səlahiyyətlərini icra edən vitse-prezident istefa verdikdə AR-nın Prezidentinin səlahiyyətlərini kim icra edir?",o:["Milli Məclisin sədri","Milli Məclisin ən yaşlı deputatı","Milli Məclisin deputatlarının səs çoxluğu ilə seçdiyi deputat","AR-nın Baş naziri","Düzgün cavab yoxdur"],a:3},
+  {n:604,q:"Prezidentin səlahiyyətlərini icra edən Baş nazir bu vəzifəni icra edə bilmədikdə kim icra edir?",o:["Birinci vitse-prezident","Milli Məclisin ən yaşlı deputatı","Milli Məclisin deputatlarının səs çoxluğu ilə seçdiyi deputat","Milli Məclisin sədri","Vitse-prezident"],a:3},
+  {n:605,q:"AR-nın vitse-prezidentinin toxunulmazlığına kim tərəfindən xitam verilə bilər?",o:["Milli Məclisin deputatlarının səs çoxluğu ilə","AR Ali Məhkəməsinin sədri tərəfindən","AR Milli Məclisinin sədri tərəfindən","AR Baş naziri tərəfindən","AR Baş prokurorunun təqdimatına əsasən AR Prezidenti tərəfindən"],a:4},
+  {n:606,q:"AR-nın vitse-prezidenti hansı halda tutula bilər?",o:["Milli Məclisin iclaslarında iştirak etmədikdə","İnzibati xəta törətdikdə","Düzgün cavab yoxdur","Ölkəni xəbərsiz tərk etdikdə","Cinayət başında yaxalanma halında"],a:4},
+  {n:607,q:"AR-nın Birinci vitse-prezidenti və ailəsinin maddi və sosial təminatı nəyin hesabına təmin edilir?",o:["AR Prezidentinin ehtiyat fondunun hesabına","Maliyyə Nazirliyinin hesabına","Milli Məclisin hesabına","Dövlət hesabına","Bütün cavablar düzdür"],a:3},
+  {n:608,q:"Dövlət başçısının təntənəli şəkildə vəzifə səlahiyyətlərinə başlaması proseduru necə adlanır?",o:["İmpiçment","Referendum","Embarqo","Veto","İnaqurasiya"],a:4},
+  {n:609,q:"Qanunvericilik təşəbbüsünə malik deyil:",o:["AR Baş Prokuroru","Milli Məclisin deputatları","AR Prezidenti","NMR Ali Məclisi","Daxili İşlər Naziri"],a:4},
+  {n:610,q:"Naxçıvan Muxtar Respublikası Prokurorunu vəzifəyə kim təyin edir?",o:["AR Ali Məhkəməsinin sədri","AR Baş Prokuroru","NMR Ali Məclisinin sədri","AR Baş Prokurorunun təqdimatı ilə AR Prezidenti","NMR Baş Naziri"],a:3},
+  {n:611,q:"AR Milli Məclisinin həll etdiyi məsələyə aiddir:",o:["AR Milli Məclisinə seçkiləri təyin etmək","Əfv etmək","Vətəndaşlıq məsələləri","Siyasi sığınacaq verilməsi məsələləri","Amnistiya"],a:4},
+  {n:612,q:"Qanunvericilik prosesi hansı mərhələlərdən ibarətdir?",o:["Qanun təklifinin verilməsi, qəbul edilməsi, rəsmi dərc edilməsi","Qanun layihəsinin yalnız deputatlar tərəfindən təklif edilməsi","Qanun təklifinin verilməsi, qəbul edilməsi, dərc edilməsi, hüquqi qüvvəyə minməsi","Qanunvericilik təşəbbüsü, müzakirəsi, qəbul edilməsi","Qanunvericilik təşəbbüsü, parlament komissiyalarında baxılması, qəbul edilməsi, sanksiyalaşdırılması, promulqasiya və dərc edilməsi"],a:4},
+  {n:613,q:"Qəbul olunmuş qanun layihələri nə vaxt qüvvəyə minir?",o:["Sanksiyalaşdırdıqdan sonra","Prezident tərəfindən imzalandıqdan sonra","Səsvermədən sonra","Dərc edildikdən sonra","Qəbul edildiyi andan"],a:3},
+  {n:614,q:"AR Prezidenti ona təqdim olunmuş qanunları neçə gün ərzində imzalayır?",o:["46 gün","30 gün","14 gün","60 gün","56 gün"],a:4},
+  {n:615,q:"İnsan hüquqları üzrə Müvəkkil illik məruzəsini hansı dövlət orqanı qarşısında təqdim edir?",o:["AR Milli Məclisi qarşısında","Heç bir dövlət orqanı qarşısında çıxış etmir","AR Ali Məhkəməsi qarşısında","AR Konstitusiya Məhkəməsi qarşısında","AR Nazirlər Kabineti qarşısında"],a:0},
+  {n:616,q:"Müvəkkil insan hüquqlarının qorunması haqqında AR Prezidentinə illik məruzəni nə vaxt təqdim edir?",o:["Məruzəni yazılı şəkildə təqdim edir","Cari il bitdikdən sonra 3 aydan gec olmayaraq","AR Nazirlər Kabinetinin son kollegiya iclasında","Cari il bitdikdən sonra 2 aydan gec olmayaraq","Milli Məclisin sessiyalarının son iclaslarında"],a:3},
+  {n:617,q:"İnsan hüquqları üzrə Müvəkkil tərəfindən AR Prezidentinə hansı məsələlərlə bağlı təkliflər verilə bilər?",o:["İnsan hüquq və azadlıqlarının təmin edilməsi məqsədilə qanunların qəbul edilməsinə dair","Vətəndaşlığın verilməsi ilə bağlı","Siyasi sığınacaq verilməsi ilə bağlı","Bütün cavablar düzdür","Məhkumları əfv edilməsi ilə bağlı"],a:3},
+  {n:618,q:"İnsan hüquqları üzrə Müvəkkilə təqdim olunmuş şikayətlərə hansı müddətdə baxılır?",o:["30 gün müddətində","1 ay müddətində","1 həftə müddətində","2 həftə müddətində","3 ay müddətində"],a:0},
+  {n:619,q:"Barəsində şikayət verilən orqanın mülahizələri hansı müddət ərzində Müvəkkilə təqdim edilməlidir?",o:["10 gün müddətində","2 həftə müddətində","1 ay müddətində","48 saat müddətində","1 həftə müddətində"],a:0},
+  {n:620,q:"Cəzaçəkmə müəssisələrindəki şəxslərin şikayətləri neçə müddətdə Müvəkkilə göndərilir?",o:["1 həftə müddətində","2 həftə müddətində","24 saat müddətinde","48 saat müddətinde","1 ay müddətinde"],a:2},
+  {n:621,q:"İnsan hüquqlarının pozulması ilə bağlı şikayətçi ərizəni hansı müddətdə verə bilər?",o:["Müddət şamil olunmur","Hüquqlarının pozulduğu gündən 1 ay müddətinde","Hüquqlarının pozulduğu gündən 6 ay müddətinde","Hüquqlarının pozulduğu gündən 1 il müddətinde","Hüquqlarının pozulduğu gündən 3 il müddətinde"],a:3},
+  {n:622,q:"AR hakimlərinin fəaliyyətinin yoxlanılması Müvəkkilin səlahiyyətlərinə aid deyil. Hansı hallar istisna təşkil edir?",o:["Məhkəmələrdə süründürməçiliyə dair şikayətlər","Sənədlərin vaxtında verilməməsinə dair şikayətlər","Məhkəmə qərarlarının icrasının gecikdirilməsi ilə əlaqədar şikayətlər","Bütün cavablar düzdür","Sənədlərin itirilməsinə dair şikayətlər"],a:3},
+  {n:623,q:"AR Prezidentinin, Milli Məclis deputatlarının, hakimlərinin fəaliyyətinin yoxlanılması Müvəkkilin səlahiyyətlərinə aid edilirmi?",o:["Aid deyildir","Korrupsiya cinayətləri ilə bağlı aid edilir","Qismən aid edilir","Baş prokurorluq tərəfindən təqdimat olduğunda aid edilir","Vətəndaşların şikayəti əsasında istisna hal kimi aid edilir"],a:0},
+  {n:624,q:"\"AR-nın İnsan Hüquqları üzrə Müvəkkili haqqında\" Konstitusiya Qanunu nə vaxt qəbul edilmişdir?",o:["15 mart 1992-ci il","12 noyabr 1995-ci il","28 dekabr 2001-ci il","18 oktyabr 2002-ci il","24 dekabr 2001-ci il"],a:2},
+  {n:625,q:"AR nə vaxt \"İnsan hüquqlarının müdafiəsi haqqında\" Avropa Konvensiyasına qoşulmuşdur?",o:["2000-ci ildə","2001-ci ildə","1992-ci ildə","1995-ci ildə","2018-ci ildə"],a:1},
+  {n:626,q:"\"AR-da insan hüquq və azadlıqlarının həyata keçirilməsinin tənzimlənməsi haqqında\" Konstitusiya Qanunu nə vaxt qəbul edilmişdir?",o:["18 oktyabr 2002-ci il","15 mart 1992-ci il","24 dekabr 2002-ci il","24 dekabr 2001-ci il","12 noyabr 1995-ci il"],a:2},
+  {n:627,q:"Azərbaycan Respublikası hansı ildən BƏT-nın tam hüquqlu üzvüdür?",o:["1955-ci ildən","2001-ci ildən","2000-ci ildən","1992-ci ildən","1940-cı ildən"],a:3},
+  {n:628,q:"Beynəlxalq Əmək Təşkilatı nə vaxt yaradılmışdır?",o:["1918-ci ildə","1941-ci ildə","1949-cu ildə","1919-cu ildə","1948-ci ildə"],a:3},
+  {n:629,q:"İnsan hüquqlarının əsas xüsusiyyətləri hansılardır?",o:["İnsan hüquqları alına bilməz","İnsan hüquqları qarşılıqlı asılı və əlaqəlidir","Bütün cavablar düzdür","İnsan hüquqları universaldır","İnsan hüquqları bölünməzdir"],a:2},
+  {n:630,q:"Uşaq Hüquqları Konvensiyası nə vaxt qəbul olunmuşdur?",o:["1918-ci ildə","1941-ci ildə","1919-cu ildə","1989-cu ildə","1948-ci ildə"],a:3},
+  {n:631,q:"Avropa İnsan Hüquqları Konvensiyası nə vaxt qəbul olunmuşdur?",o:["1941-ci ildə","1948-ci ildə","1918-ci ildə","1950-ci ildə","1919-cu ildə"],a:3},
+  {n:632,q:"Rəsmi elan olunmuş, yerinə yetirilməsi bütün vətəndaşlar üçün məcburi olan normalar necə adlanır?",o:["Sanksiya","Dispozitiv norma","Hipoteza","İmperativ norma","Dispozisiya"],a:3},
+  {n:633,q:"Konstitusiyaya görə Azərbaycanda mülkiyyətin hansı növləri mövcuddur?",o:["Kolxoz kooperativ mülkiyyəti","Dövlət, xüsusi və bələdiyyə mülkiyyəti","İctimai mülkiyyət","Şəxsi mülkiyyət","Hərbi mülkiyyət"],a:1},
+  {n:634,q:"Vətəndaşlığın şəxsi vəsatəti ilə əldə edilməsi necə adlanır?",o:["Transfert","Reinteqrasiya","Filiasiya","Optasiya","Naturalizasiya"],a:4},
+  {n:635,q:"Yaranmış ikili vətəndaşlıqdan birinin seçilməsi necə adlanır?",o:["Naturalizasiya","Optasiya","Reinteqrasiya","Transfert","Filiasiya"],a:1},
+  {n:636,q:"Optasiya nədir?",o:["Vətəndaşlığın itirilməsi","Vətəndaşlığın bərpası","Vətəndaşlığın anadangəlmə əldə edilməsi","Ərazilər dəyişərkən vətəndaşlığın müəyyən olunması","Yaranmış ikili vətəndaşlıqdan birinin seçilməsi"],a:4},
+  {n:637,q:"Konstitusiyanın bir hissəsi kimi preambula nəyi ifadə edir?",o:["Nəticə hissəsini","Əsas hissəni","Giriş hissəsini","Bütün bölmələri","Keçid müddəalarını"],a:2},
+  {n:638,q:"Dövlətin suverenliyi nəyi ifadə edir?",o:["Hakimiyyət səlahiyyətlərinə malik ictimai siyasi təşkilatların olması","Dövlət bayrağının, himninin və gerbinin olması","Vergilərin və vergi sisteminin olması","Dövlət hakimiyyətinin daxili və xarici siyasətinin həyata keçirilməsindəki müstəqillik","Xalqın və ərazinin olması"],a:3},
+  {n:639,q:"AR-nın vətəndaşlığından çıxma və itirilməsi nəyi ifadə edir?",o:["İnzibati məsuliyyəti","Cinayət məsuliyyətini","Ölkədən deportasiya olunmanı","AR-nın vətəndaşlığına xitam verilməsini","AR-nın vətəndaşlığından məhrum etməni"],a:3},
+  {n:640,q:"Vətəndaşlığın əldə olunmasının qan hüququ nəyi ifadə edir?",o:["Vətəndaşlığın transfert qaydasında əldə olunması","Vətəndaşlığın itirilməsi","Vətəndaşlığın naturalizasiya qaydasında əldə olunması","Uşağın öz valideynləri ilə eyni vətəndaşlığı əldə etməsi","Vətəndaşlığın optasiya qaydasında əldə olunması"],a:3},
+  {n:641,q:"26 sentyabr 2016-cı il referendumuna əsasən AR-nın Prezidenti neçə il müddətinə seçilir?",o:["6 il","3 il","4 il","7 il","5 il"],a:3},
+  {n:642,q:"26 sentyabr 2016-cı il referendumuna əsasən Milli Məclis deputatlığına namizədlik üçün hansı yaş həddi tələb olunur?",o:["20 yaşdan yuxarı","35 yaşdan yuxarı","30 yaşdan yuxarı","Yaş həddi şamil olunmur","25 yaşdan yuxarı"],a:3},
+  {n:643,q:"26 sentyabr 2016-cı il referendumuna əsasən hakimliyə namizədlik üçün hansı yaş həddi tələb olunur?",o:["35 yaşdan yuxarı","20 yaşdan yuxarı","25 yaşdan yuxarı","Yaş həddi şamil olunmur","30 yaşdan yuxarı"],a:3},
+  {n:644,q:"Xaricdə yaşayan AR vətəndaşının öz ölkəsinə qayıtmaq hüququ məhdudlaşdırıla bilərmi?",o:["Həmin şəxsin xarici dövlət qarşısında öhdəliyi olduqda","Hərbi və fövqəladə vəziyyət zamanı","Milli maraqlara zidd fəaliyyəti aşkarlanan zaman","Müharibə və fövqəladə vəziyyət zamanı","AR vətəndaşının hər zaman maneəsiz öz ölkəsinə qayıtmaq hüququ var"],a:4},
+  {n:645,q:"Hüquq normalarının funksiyalarına aiddir:",o:["Təşkiledici","Tərbiyəvi, elmi","Elmi, təşkiledici","Maarifləndirici","Qoruyucu, nizamlayıcı"],a:4},
+  {n:646,q:"Rəsmi dövlət orqanı tərəfindən qəbul edilən hüquq norması necə adlanır?",o:["İmperativ norma","Səlahiyyət verici norma","Yerli hakimiyyət orqanı tərəfindən qəbul edilən norma","Alternativ norma","Məhkəmə qərarı"],a:0},
+  {n:647,q:"Hansı xüsusiyyət hüquq pozuntusunun obyektiv cəhətini əks etdirir?",o:["Məqsəd","Motiv","Təqsir","İctimai təhlükəli nəticə","Qəsd"],a:3},
+  {n:648,q:"Mülkiyyət hüququ vətəndaşların hansı kateqoriyasına aiddir?",o:["Şəxsi","Siyasi","Mülki","Sosial-iqtisadi","Mədəni"],a:3},
+  {n:649,q:"Təqsirsizlik prezumpsiyası hüququ vətəndaşların hansı kateqoriyasına aiddir?",o:["Şəxsi","Mədəni","İqtisadi","Sosial","Siyasi"],a:0},
+  {n:650,q:"Hansı normativ hüquqi aktlar ali qüvvəyə malikdir?",o:["Göstərişlər","Əmrlər","Qərarlar","Qanunlar","Sərəncamlar"],a:3},
+  {n:651,q:"Normaların icra edilməməsinin hansı nəticələri ola bilər?",o:["Dispozisiya","Müvafiq maddə","Preambula","Hipoteza","Sanksiya"],a:4},
+  {n:652,q:"Müəyyən normanın icrası nədən ibarət olmalıdır?",o:["Hipoteza","Təqsir","Sanksiya","Dispozisiya","Preambula"],a:3},
+  {n:653,q:"Yaratdığı hüquqi nəticələrdən asılı olaraq hüquqi faktlar necə təsnifləşdirilir?",o:["Xitamverici hüquqi faktlar","Hüquq bərpaedici hüquqi faktlar","Hüquq yaradan hüquqi faktlar","Hadisələr və hərəkətlər","Hüquq dəyişən hüquqi faktlar"],a:3},
+  {n:654,q:"Hüquq subyektlərinin tam fəaliyyət qabiliyyəti nə vaxt əldə edilir?",o:["14 yaşında","21 yaşında","16 yaşında","18 yaşında","13 yaşında"],a:3},
+  {n:655,q:"Hüquq münasibətlərinin əmələ gəlməsinə, dəyişməsinə səbəb olan həyati hallar necə adlanır?",o:["Hüquqi prezumsiya (ehtimal)","Hüquqi şərt","Hüquqi şərait","Hüquqi fakt","Düzgün cavab yoxdur"],a:3},
+  {n:656,q:"Konstitusiyaya görə Azərbaycan Dövlətinin ali məqsədi nədir?",o:["Xarici ölkələrdən investisiya almaq","Xarici ölkə banklarına sərmayə qoymaq","İnsan və vətəndaş hüquqlarının və azadlıqlarının təmin edilməsi","Müharibə etmək və sülh bağlamaq","Ədalət mühakiməsini bərqərar etmək"],a:2},
+  {n:657,q:"AR Konstitusiyasına əsasən torpaqlar ola bilər:",o:["Dövlət mülkiyyətində","Dövlət və bələdiyyə mülkiyyətinde","Xüsusi mülkiyyətdə","Dövlət, bələdiyyə və xüsusi mülkiyyətdə","Bələdiyyə mülkiyyətinde"],a:3},
+  {n:658,q:"Dövlət quruluşuna görə AR hansına aiddir?",o:["Monarxiya","Respublika","Federasiya","Unitar","Konfederasiya"],a:3},
+  {n:659,q:"Xalq hakimiyyətinin ali, birbaşa təzahür formaları:",o:["AR Prezidenti","Müstəqilliyini təmin etmək hüququ","AR Milli Məclisi","Yerli özünüidarəetmə","Referendum və azad seçkilər"],a:4},
+  {n:660,q:"Konstitusiya hüququna görə vətəndaşlığı olmayan şəxslər kimlərdir?",o:["Əcnəbilər","İkili vətəndaşlığı olanlar","Xarici vətəndaşlar","Heç bir ölkənin vətəndaşı olmayan və yaşadığı ölkənin vətəndaşlığını sübut edə bilməyən şəxslər","Şəxsiyyət vəsiqəsi olmayanlar"],a:3},
+  {n:661,q:"AR-nın vətəndaşı hansı hallarda AR-nın ərazisindən qovulur?",o:["Başqa ölkənin vətəndaşlığını qəbul etdikdə","Vətənə xəyanət etdikdə","Şəxsi vəsadəti ilə","Beynəlxalq normalarda nəzərdə tutulanda","Heç bir halda"],a:4},
+  {n:662,q:"İnsan və vətəndaş hüquq və azadlıqlarının əsas prinsipi nədir?",o:["Cəmiyyət üzvlərinin müxtəlif maraqlarını əlaqələndirən vahid hakimiyyət altında birləşməsi","Qanunla yol verilən hər şeyi etmək imkanında","İnsan və vətəndaş hüquq və azadlıqlarının təmin edilməsi","Hər kəsin doğulduğu andan toxunulmaz, pozulmaz və ayrılmaz hüquqları və azadlıqları vardır","Dövlət öz fəaliyyətində hüququ rəhbər tutaraq, insan hüquqlarını təmin edir"],a:3},
+  {n:663,q:"26 sentyabr 2016-cı il referendumuna əsasən AR Konstitusiyasının neçə maddəsinde dəyişiklik edilmişdir?",o:["40 maddəsinde","20 maddəsinde","30 maddəsinde","29 maddəsinde","15 maddəsinde"],a:3},
+  {n:664,q:"AR-nın Konstitusiyası 12 noyabr 1995-ci ildə qəbul olunub, qüvvəyə minib ......",o:["17 noyabr 1995-ci ildə","Qəbul olunduğu gündə qüvvəyə minib","27 noyabr 1995-ci ildə","27 noyabr 1991-ci ildə","18 oktyabr 1991-ci ildə"],a:2},
+  {n:665,q:"AR-nın Konstitusiyasında dəyişikliklər edilməsi haqqında sonuncu referendum hansı tarixdə keçirilmişdir?",o:["26 sentyabr 2015-ci il","01 noyabr 2016-cı il","30 oktyabr 2016-cı il","26 sentyabr 2016-cı il","26 oktyabr 2016-cı il"],a:3},
+  {n:666,q:"İmpiçment nədir?",o:["Ədalət mühakiməsinin həyata keçirilməsi","Prezidentin səlahiyyət müddətinin uzadılması","Hökumətin istefası","Dövlətin vəzifəli şəxslərinin xəyanət və digər ağır cinayətləri üzrə parlament məhkəməsi icraatı","Növbədən kənar seçkilər"],a:3},
+  {n:667,q:"İnsan və vətəndaş hüquqlarının pozulması ilə əlaqədar mübahisələri hansı orqan həll edir?",o:["Prokurorluq orqanları","Yuxarı icra orqanları","Prezident","Məhkəmələr","Ombudsman"],a:3},
+  {n:668,q:"Konstitusiya öz xarakterinə görə hansı aktlara aiddir?",o:["İctimai-siyasi aktdır","Yalnız siyasi aktdır","Fərdi xarakterli aktdır","Hüquqi-siyasi aktdır","Yalnız hüquqi aktdır"],a:3},
+  {n:669,q:"Konstitusiyanın 48-ci maddəsindəki vicdan azadlığı hansı normativ aktla tənzimlənir?",o:["Respublika Prezidentinin fərmanları ilə","Adət, ənənə, ictimai və əxlaq normaları ilə","Nazirlər kabinetinin sərəncamları ilə","Dini etiqad azadlığı haqqında qanun ilə","Məhkəmələr və hakimlər haqqında qanunla"],a:3}
+];
+
+// Define ranges for Option B
+const RANGES = [
+  {label:"2–13 (Fundamental hüquqlar, mülki hüquq əsasları)", from:2, to:13},
+  {label:"22–32 (Ombudsman, maliyyə hüququ, ÜDM)", from:22, to:32},
+  {label:"45–51 (Hüquqi şəxs, əqd, iddia müddəti)", from:45, to:51},
+  {label:"64–139 (Konstitusiya hüququ, vətəndaşlıq, mülkiyyət)", from:64, to:139},
+  {label:"149–194 (Müəlliflik, konstitusiya, əmək müqaviləsi)", from:149, to:194},
+  {label:"254–281 (BOKT, vergi, büdcə, maliyyə)", from:254, to:281},
+  {label:"334–342 (Korrupsiya əleyhinə mübarizə)", from:334, to:342},
+  {label:"344–346 (Əqd, iddia müddəti)", from:344, to:346},
+  {label:"353–359 (Mülki hüquq, hüquq qabiliyyəti)", from:353, to:359},
+  {label:"371–374 (Hüquqi faktlar, iddia müddəti)", from:371, to:374},
+  {label:"379–381 (Hüquqi şəxs, fəaliyyət qabiliyyəti)", from:379, to:381},
+  {label:"390–394 (Mülki hüquq subyektləri)", from:390, to:394},
+  {label:"520–523 (Mülkiyyət, əqd növləri)", from:520, to:523},
+  {label:"535–537 (Əqd formaları, mülki tənzimetmə)", from:535, to:537},
+  {label:"545–546 (Hüquqi şəxsin təsisi)", from:545, to:546},
+  {label:"559–669 (Konstitusiya, iddia müddəti, dövlət quruluşu)", from:559, to:669}
+];
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let examQuestions = [], currentIdx = 0, answers = {}, timerInterval = null, seconds = 0;
+let selectedMode = null;
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goHome(){ stopTimer(); show('home'); }
+function goSetup(){ stopTimer(); selectedMode=null; document.getElementById('optA').classList.remove('selected'); document.getElementById('optB').classList.remove('selected'); document.getElementById('formRandom').classList.remove('show'); document.getElementById('formRange').classList.remove('show'); buildRangeList(); show('setup'); }
+
+function buildRangeList(){
+  const container = document.getElementById('rangeList');
+  container.innerHTML='';
+  RANGES.forEach((r,i)=>{
+    const label = document.createElement('label');
+    label.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--bg);font-size:.85rem;';
+    label.innerHTML=`<input type="checkbox" value="${i}" style="accent-color:var(--accent);width:15px;height:15px;"> ${r.label}`;
+    container.appendChild(label);
+  });
+}
+buildRangeList();
+
+function selectMode(m){
+  selectedMode=m;
+  document.getElementById('optA').classList.toggle('selected', m==='random');
+  document.getElementById('optB').classList.toggle('selected', m==='range');
+  document.getElementById('formRandom').classList.toggle('show', m==='random');
+  document.getElementById('formRange').classList.toggle('show', m==='range');
+}
+
+// ════════════════════════════════
+// START EXAM
+// ════════════════════════════════
+function shuffle(arr){ let a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function startRandom(){
+  const cnt = Math.min(669, Math.max(5, parseInt(document.getElementById('rCount').value)||20));
+  examQuestions = shuffle(ALL_QUESTIONS).slice(0,cnt);
+  launchExam();
+}
+
+function startRange(){
+  const checked = [...document.querySelectorAll('#rangeList input:checked')].map(c=>parseInt(c.value));
+  if(!checked.length){ alert('Ən azı bir aralıq seçin!'); return; }
+  let pool=[];
+  checked.forEach(i=>{ const r=RANGES[i]; pool.push(...ALL_QUESTIONS.filter(q=>q.n>=r.from && q.n<=r.to)); });
+  pool=[...new Map(pool.map(q=>[q.n,q])).values()];
+  const cnt = Math.min(pool.length, Math.max(1, parseInt(document.getElementById('rRangeCount').value)||20));
+  examQuestions = shuffle(pool).slice(0,cnt);
+  launchExam();
+}
+
+function launchExam(){
+  currentIdx=0; answers={};
+  startTimer();
+  show('exam');
+  renderQuestion();
+}
+
+// ════════════════════════════════
+// TIMER
+// ════════════════════════════════
+function startTimer(){ seconds=0; clearInterval(timerInterval); timerInterval=setInterval(()=>{ seconds++; updateTimerDisplay(); },1000); }
+function stopTimer(){ clearInterval(timerInterval); }
+function updateTimerDisplay(){
+  const m=String(Math.floor(seconds/60)).padStart(2,'0'), s=String(seconds%60).padStart(2,'0');
+  const el=document.getElementById('timerBadge');
+  el.textContent=`⏱ ${m}:${s}`;
+  el.classList.toggle('warn', seconds>600);
+}
+
+// ════════════════════════════════
+// RENDER QUESTION
+// ════════════════════════════════
+function renderQuestion(){
+  const q = examQuestions[currentIdx];
+  const total = examQuestions.length;
+  const pct = Math.round((currentIdx/total)*100);
+  document.getElementById('progLabel').textContent=`Sual ${currentIdx+1} / ${total}`;
+  document.getElementById('progBar').style.width=pct+'%';
+
+  const answered = answers[currentIdx];
+  const locked = answered !== undefined;
+  const letters = 'ABCDE';
+
+  let opts='';
+  q.o.forEach((opt,i)=>{
+    let cls='option-item';
+    if(locked){ cls+=' locked'; if(i===q.a) cls+=' correct'; else if(i===answered) cls+=' wrong'; else if(i===answered && i===q.a) cls+=' correct'; }
+    else if(answered===i) cls+=' selected';
+    opts+=`<li class="${cls}" onclick="selectAnswer(${i})">
+      <span class="opt-letter">${letters[i]}</span>
+      <span>${opt}</span>
+    </li>`;
+  });
+
+  const hasPrev = currentIdx>0;
+  const isLast = currentIdx===total-1;
+
+  document.getElementById('questionCard').innerHTML=`
+    <div class="q-num">Sual ${q.n} &nbsp;•&nbsp; ${currentIdx+1}/${total}</div>
+    <div class="q-text">${q.q}</div>
+    <ul class="options">${opts}</ul>
+    <div class="q-nav">
+      <button class="btn btn-ghost" onclick="prevQ()" ${hasPrev?'':'disabled'} style="opacity:${hasPrev?1:0.3}">← Əvvəlki</button>
+      <span class="q-counter">${Object.keys(answers).length} cavablandı</span>
+      ${isLast
+        ? `<button class="btn btn-primary" onclick="showResult()">Nəticə →</button>`
+        : `<button class="btn btn-primary" onclick="nextQ()">Növbəti →</button>`}
+    </div>
+  `;
+}
+
+function selectAnswer(i){
+  if(answers[currentIdx]!==undefined) return;
+  answers[currentIdx]=i;
+  renderQuestion();
+}
+function nextQ(){ if(currentIdx<examQuestions.length-1){ currentIdx++; renderQuestion(); } }
+function prevQ(){ if(currentIdx>0){ currentIdx--; renderQuestion(); } }
+
+// ════════════════════════════════
+// RESULT
+// ════════════════════════════════
+function showResult(){
+  stopTimer();
+  let correct=0, wrong=0;
+  examQuestions.forEach((q,i)=>{ if(answers[i]===q.a) correct++; else if(answers[i]!==undefined) wrong++; });
+  const total=examQuestions.length;
+  const pct=Math.round((correct/total)*100);
+
+  document.getElementById('scorePct').textContent=pct+'%';
+  document.getElementById('resultTitle').textContent = pct>=85 ? '🏆 Əla nəticə!' : pct>=60 ? '✅ Yaxşı nəticə' : '📚 Daha çox məşq lazımdır';
+  document.getElementById('resultMsg').textContent=`${total} sualdan ${correct} düzgün, ${wrong} səhv cavabladınız. (${Object.keys(answers).length} sual cavablandı)`;
+  document.getElementById('statCorrect').textContent=correct;
+  document.getElementById('statWrong').textContent=wrong;
+  document.getElementById('statTotal').textContent=total;
+
+  const ring = document.getElementById('scoreRing');
+  ring.style.borderColor = pct>=85 ? 'var(--success)' : pct>=60 ? 'var(--accent)' : 'var(--error)';
+
+  show('result');
+}
+</script>
+</body>
+</html>
